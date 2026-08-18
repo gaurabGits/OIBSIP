@@ -1,16 +1,15 @@
 import { Pizza, MapPin, Phone, Clock,} from 'lucide-react'
 import { FaFacebookSquare, FaInstagramSquare, FaTwitterSquare} from "react-icons/fa";
+import SystemLogo from '../../assets/icons/SystemLogo';
 
 const shopLinks = [
   { label: 'Menu', href: '#menu' },
-  { label: 'Deals', href: '#deals' },
   { label: 'About', href: '#about' },
 ]
 
 const supportLinks = [
   { label: 'Contact', href: '#contact' },
   { label: 'FAQs', href: '#faq' },
-  { label: 'Privacy Policy', href: '#privacy' },
 ]
 
 function Footer() {
@@ -20,14 +19,7 @@ function Footer() {
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div>
-            <a href="#" className="flex items-center gap-2.5">
-              <span className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-[#d4a24c] to-[#b8842f]">
-                <Pizza className="h-5 w-5 text-[#1c1410]" strokeWidth={2.2} />
-              </span>
-              <span className="font-serif text-xl font-semibold text-[#fdf8f0]">
-                Slice<span className="italic text-[#d4a24c]">House</span>
-              </span>
-            </a>
+            <SystemLogo className="mb-3" showText={true} />
             <p className="mt-3 text-sm text-[#a89482]">
               Fresh, wood-fired pizza delivered hot to your door.
             </p>

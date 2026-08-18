@@ -12,6 +12,7 @@ import sauceImg from '../../assets/images/sauce.png';
 import cheeseImg from '../../assets/images/cheese.png';
 import meatsImg from '../../assets/images/meats.png';
 import herbsImg from '../../assets/images/herbs.png';
+import veggiesImg from '../../assets/images/veggies.png';
 
 /* ─── Ingredient orbit config ─────────────────────────────────────── */
 const INGREDIENTS = [
@@ -19,6 +20,7 @@ const INGREDIENTS = [
   { name: 'Cheese', desc: 'Creamy mozzarella', img: cheeseImg },
   { name: 'Meats', desc: 'Pepperoni & salami', img: meatsImg },
   { name: 'Herbs', desc: 'Fresh basil & oregano', img: herbsImg },
+  { name: 'Veggies', desc: 'Fresh mushrooms & peppers', img: veggiesImg },
 ];
 
 const SLOT_COUNT = INGREDIENTS.length;
