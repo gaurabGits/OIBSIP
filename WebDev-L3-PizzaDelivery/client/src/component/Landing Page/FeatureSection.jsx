@@ -74,7 +74,7 @@ function FeatureSection() {
           <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-[#C1442D]/10 blur-2xl" />
           <div className="overflow-hidden rounded-[1.75rem] shadow-2xl shadow-[#1C1712]/20">
             <img
-              src="../../../public/images/landingImg.png"
+              src="../../../images/landingImg.png"
               alt="Wood-fired pizza fresh from the oven"
               className="h-[420px] w-full object-cover sm:h-[480px]"
             />

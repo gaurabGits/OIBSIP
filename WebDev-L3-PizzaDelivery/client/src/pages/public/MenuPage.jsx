@@ -22,7 +22,7 @@ function MenuPage() {
           className="absolute inset-0 -z-20 bg-cover bg-center"
           style={{
             backgroundImage:
-              'url("../../public/images/Fireimage.png")',
+              'url("../../../images/Fireimage.png")',
           }}
         />
 

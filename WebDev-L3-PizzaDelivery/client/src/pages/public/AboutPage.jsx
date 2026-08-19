@@ -47,7 +47,7 @@ function AboutPage() {
           className="absolute inset-0 -z-20 bg-cover bg-center"
           style={{
             backgroundImage:
-              'url("https://media02.stockfood.com/largepreviews/NDE0MzQ0MjMz/13365943-Pizza-im-Steinofen-backen.jpg")',
+              'url("../../../images/landingImg.png")',
           }}
         />
 
