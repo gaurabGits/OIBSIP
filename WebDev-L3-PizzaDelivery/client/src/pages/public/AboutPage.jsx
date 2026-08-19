@@ -52,15 +52,15 @@ function AboutPage() {
         />
 
         {/* Dark overlay */}
-        <div className="absolute inset-0 -z-10 bg-black/65" />
+        <div className="absolute inset-0 -z-10 bg-black/35" />
 
         {/* Warm gradient */}
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/80 via-black/55 to-black/35" />
 
-        <div className="mx-auto flex min-h-[580px] max-w-6xl flex-col justify-between gap-12 px-6 py-16 sm:px-10 lg:px-12 lg:py-24">
+        <div className="mx-auto flex min-h-[400px] max-w-6xl flex-col justify-between gap-12 px-6 py-16 sm:px-10 lg:px-12 lg:py-24">
 
           <div className="max-w-3xl">
-            <p className="mb-5 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-amber-400">
+            <p className="mb-5 inline-flex items-center gap-2 text-[12px] font-bold uppercase tracking-[0.22em] text-amber-400">
               <span className="h-2 w-2 rounded-full bg-amber-400" />
               About SliceHouse
             </p>
@@ -68,10 +68,10 @@ function AboutPage() {
             <h1 className="max-w-3xl font-serif text-5xl leading-[1.02] tracking-tight sm:text-7xl">
               Better pizza,
               <br />
-              made your way.
+              made <span className="text-amber-400">your</span> way.
             </h1>
 
-            <p className="mt-7 max-w-2xl text-base leading-7 text-white/75 sm:text-lg">
+            <p className="mt-7 max-w-2xl text-[15px] leading-relaxed text-white/75 sm:text-lg">
               SliceHouse is a modern pizza ordering platform designed to make
               customization, checkout, and order tracking simple from the
               first click to your doorstep.
@@ -106,16 +106,16 @@ function AboutPage() {
         <div className="grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-24">
 
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            <p className="text-[12px] font-bold uppercase text-[#C1442D] tracking-[0.22em] text-primary">
               What we do
             </p>
 
-            <h2 className="mt-4 font-serif text-4xl tracking-tight sm:text-5xl">
-              A clear path from craving to checkout.
+            <h2 className="mt-4 font-serif text-4xl font-semibold tracking-tight sm:text-5xl">
+              A clear path from craving to <span className="text-primary text-[#C1442D]">Checkout.</span>
             </h2>
           </div>
 
-          <div className="space-y-6 text-base leading-7 text-muted-foreground sm:text-lg">
+          <div className="space-y-6 text-[15px] leading-relaxed text-muted-foreground sm:text-lg">
             <p>
               SliceHouse brings customer ordering and restaurant operations
               into one focused platform. Customers can customize a pizza,
@@ -136,15 +136,15 @@ function AboutPage() {
               key={title}
               className="border-b border-border bg-card p-7 transition-colors hover:bg-muted/40 md:border-b-0 md:border-r last:md:border-r-0 sm:p-8"
             >
-              <div className="flex size-11 items-center justify-center rounded-xl bg-primary/10">
-                <Icon className="size-5 text-primary" />
+              <div className="flex size-11 items-center justify-center  bg-[#C1442D]/25 p-2 rounded-2xl bg-primary/10">
+                <Icon className="size-5 text-primary text-[#C1442D]" />
               </div>
 
-              <h3 className="mt-10 text-lg font-semibold">
+              <h3 className="mt-5 font-serif text-lg font-semibold">
                 {title}
               </h3>
 
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 {text}
               </p>
             </article>
@@ -157,18 +157,30 @@ function AboutPage() {
         <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 sm:px-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-24 lg:px-12 lg:py-24">
 
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            <p className="text-[12px] font-bold text-[#C1442D] uppercase tracking-[0.22em] text-primary">
               Custom pizza builder
             </p>
 
-            <h2 className="mt-4 font-serif text-4xl tracking-tight sm:text-5xl">
-              Make it yours, one choice at a time.
+            <h2 className="mt-4 font-serif text-4xl font-semibold tracking-tight sm:text-5xl">
+              Make it your, <span className="text-primary text-[#C1442D]">One Choice</span> at a time.
             </h2>
 
-            <p className="mt-5 max-w-md text-base leading-7 text-muted-foreground">
+            <p className="mt-5 max-w-md text-[15px] leading-relaxed text-muted-foreground">
               Choose exactly what you want and create a pizza that matches
               your taste.
             </p>
+
+            <div>
+              <a
+                href="#builder"
+                className="mt-10 inline-flex items-center gap-2 font-sans text-sm font-semibold text-[#C1442D] transition-colors hover:text-[#1C1712]"
+              >
+                Start building your pizza
+                <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">
+                  →
+                </span>
+              </a>
+            </div>
           </div>
 
           <ol className="divide-y divide-border border-y border-border">
@@ -201,15 +213,15 @@ function AboutPage() {
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
 
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            <p className="text-[12px] text-[#C1442D] font-bold uppercase tracking-[0.22em] text-primary">
               Get in touch
             </p>
 
-            <h2 className="mt-4 font-serif text-4xl tracking-tight sm:text-5xl">
-              Have a question?
+            <h2 className="mt-4 font-serif text-4xl font-semibold tracking-tight sm:text-5xl">
+              Have a <span className="text-primary">question</span>?
             </h2>
 
-            <p className="mt-4 max-w-md text-muted-foreground">
+            <p className="mt-4 max-w-md text-[15px] leading-relaxed text-muted-foreground">
               We are here to help with questions about orders, payments, or
               the SliceHouse experience.
             </p>
@@ -218,23 +230,25 @@ function AboutPage() {
           <div className="grid gap-5 text-sm text-muted-foreground">
 
             <a
-              className="flex items-center gap-3 transition-colors hover:text-foreground"
+              className="flex items-center gap-3 underline-offset-4 transition-colors hover:text-primary hover:underline"
               href="mailto:hello@slicehouse.com"
+              aria-label="Email SliceHouse at hello@slicehouse.com"
             >
-              <CreditCard className="size-4 text-primary" />
+              <CreditCard className="size-4 text-primary" aria-hidden="true" />
               hello@slicehouse.com
             </a>
 
             <a
-              className="flex items-center gap-3 transition-colors hover:text-foreground"
+              className="flex items-center gap-3 underline-offset-4 transition-colors hover:text-primary hover:underline"
               href="tel:+9779700000000"
+              aria-label="Call SliceHouse at +977 97XXXXXXXX"
             >
-              <Phone className="size-4 text-primary" />
+              <Phone className="size-4 text-primary" aria-hidden="true" />
               +977 97XXXXXXXX
             </a>
 
             <span className="flex items-center gap-3">
-              <MapPin className="size-4 text-primary" />
+              <MapPin className="size-4 text-primary" aria-hidden="true" />
               Kathmandu, Nepal
             </span>
 

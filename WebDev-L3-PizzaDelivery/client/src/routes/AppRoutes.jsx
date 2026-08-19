@@ -2,6 +2,7 @@ import LandingPage from "../pages/public/LandingPage";
 import SignupPage from './../pages/auth/Signup';
 import LoginPage from './../pages/auth/Login';
 import AboutPage from './../pages/public/AboutPage';
+import MenuPage from './../pages/public/MenuPage';
 
 export const routes = [
     {
@@ -11,6 +12,10 @@ export const routes = [
     {
         path: "/about",
         element: <AboutPage />
+    },
+    {
+        path: "/menu",
+        element: <MenuPage />
     },
     {
         path: "/login",

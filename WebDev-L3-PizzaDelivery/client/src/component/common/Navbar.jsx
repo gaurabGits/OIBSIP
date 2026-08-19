@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
 import {
-  Pizza,
   Menu as MenuIcon,
   X,
   ShoppingCart,
@@ -14,7 +13,7 @@ import { Link } from 'react-router-dom';
 
 const navLinks = [
   { label: 'Home', href: '/' },
-  { label: 'Menu', href: '#menu' },
+  { label: 'Menu', href: '/menu' },
   { label: 'About Us', href: '/about' },
 ]
 
@@ -31,7 +30,7 @@ function Navbar() {
 
   // --- Auth + cart state (swap for real auth/cart context later) ---
   const [isVerified, setIsVerified] = useState(false)
-  const [cartCount, setCartCount] = useState(3)
+  const [cartCount, setCartCount] = useState(1)
   const [profileOpen, setProfileOpen] = useState(false)
   const profileRef = useRef(null)
 
@@ -82,19 +81,7 @@ function Navbar() {
           {/* Right side — auth-aware controls */}
           <div className="flex shrink-0 items-center gap-3">
             {isVerified ? (
-              <div className="hidden items-center gap-3 lg:flex">
-                {/* Cart */}
-                <button
-                  aria-label="View cart"
-                  className="relative grid h-11 w-11 place-items-center rounded-full text-[#fffaf2] transition-colors hover:bg-white/10"
-                >
-                  <ShoppingCart className="h-[22px] w-[22px]" />
-                  {cartCount > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-amber-400 px-1 text-[11px] font-bold text-stone-900 shadow">
-                      {cartCount}
-                    </span>
-                  )}
-                </button>
+              <div className="hidden items-center gap-3 lg:flex">                
 
                 {/* Profile card */}
                 <div className="relative" ref={profileRef}>
@@ -174,6 +161,18 @@ function Navbar() {
               </div>
             ) : (
               <div className="hidden items-center gap-2 lg:flex">
+                <button
+                  aria-label="View cart"
+                  className="relative grid h-11 w-11 place-items-center rounded-full text-[#fffaf2] transition-colors cursor-pointer hover:bg-white/10"
+                >
+                  <ShoppingCart className="h-[22px] w-[22px] scale-x-[-1]" />
+                  {cartCount > 0 && (
+                    <span className="absolute  -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-amber-400 px-1 text-[11px] font-bold text-stone-900 shadow">
+                      {cartCount}
+                    </span>
+                  )}
+                </button>
+
                 <Link
                   to="/login"
                   className="rounded-full px-4 py-2.5 text-[15px] font-semibold text-[#fffaf2] transition-colors hover:bg-white/10"
