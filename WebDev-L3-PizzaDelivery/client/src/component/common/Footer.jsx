@@ -1,10 +1,11 @@
-import { Pizza, MapPin, Phone, Clock,} from 'lucide-react'
+﻿import { MapPin, Phone, Clock } from 'lucide-react'
 import { FaFacebookSquare, FaInstagramSquare, FaTwitterSquare} from "react-icons/fa";
 import SystemLogo from '../../assets/icons/SystemLogo';
+import { Link } from 'react-router-dom';
 
 const shopLinks = [
-  { label: 'Menu', href: '#menu' },
-  { label: 'About', href: '#about' },
+  { label: 'Menu', href: '/menu' },
+  { label: 'About', href: '/about' },
 ]
 
 const supportLinks = [
@@ -15,8 +16,8 @@ const supportLinks = [
 function Footer() {
   return (
     <footer className="w-full border-t border-[#3a2a1e] bg-[#1c1410]">
-      <div className="mx-auto max-w-7xl px-5 py-12 md:px-10">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto max-w-7xl px-5 py-10 sm:py-12 md:px-10">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-10">
           {/* Brand */}
           <div>
             <SystemLogo className="mb-3" showText={true} />
@@ -33,12 +34,12 @@ function Footer() {
             <ul className="flex flex-col gap-2">
               {shopLinks.map((link) => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
+                  <Link
+                    to={link.href}
                     className="text-sm text-[#c9b9a4] transition-colors hover:text-[#fdf8f0]"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -52,12 +53,12 @@ function Footer() {
             <ul className="flex flex-col gap-2">
               {supportLinks.map((link) => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
+                  <Link
+                    to={link.href}
                     className="text-sm text-[#c9b9a4] transition-colors hover:text-[#fdf8f0]"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -88,7 +89,7 @@ function Footer() {
         {/* Bottom bar */}
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-[#3a2a1e] pt-6 sm:flex-row">
           <p className="text-xs text-[#6b5c4d]">
-            © {new Date().getFullYear()} SliceHouse. All rights reserved.
+            Â© {new Date().getFullYear()} SliceHouse. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <a href="#" aria-label="Instagram" className="text-[#a89482] hover:text-[#d4a24c]">
@@ -108,3 +109,4 @@ function Footer() {
 }
 
 export default Footer
+

@@ -1,12 +1,14 @@
 ﻿import Navbar from "./Navbar";
 import Footer from "./Footer";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
 function Layout() {
+  const location = useLocation();
+
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col overflow-x-hidden">
       <Navbar />
-      <main className="flex-grow">
+      <main key={location.pathname} className="page-transition flex-grow">
         <Outlet />
       </main>
       <Footer />
@@ -15,4 +17,3 @@ function Layout() {
 }
 
 export default Layout;
-
