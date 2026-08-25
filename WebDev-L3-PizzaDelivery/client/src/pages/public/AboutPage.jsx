@@ -1,4 +1,4 @@
-import {
+﻿import {
   Check,
   ChefHat,
   CreditCard,
@@ -7,7 +7,9 @@ import {
   Phone,
   ShoppingBag,
   Truck,
+  ArrowUpRight
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 const features = [
   {
@@ -40,69 +42,75 @@ function AboutPage() {
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
 
       {/* Hero */}
-      <section className="relative isolate min-h-[580px] overflow-hidden border-b border-border bg-[#17120f] text-white">
+      <section className="relative isolate overflow-hidden text-white">
 
         {/* Background image */}
         <div
           className="absolute inset-0 -z-20 bg-cover bg-center"
           style={{
-            backgroundImage:
-              'url("../../../images/landingImg.png")',
+            backgroundImage: 'url("../../../images/landingImg.png")',
           }}
         />
 
         {/* Dark overlay */}
-        <div className="absolute inset-0 -z-10 bg-black/35" />
+        <div className="absolute inset-0 -z-10 bg-black/50" />
 
         {/* Warm gradient */}
-        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/80 via-black/55 to-black/35" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/85 via-black/60 to-black/35" />
 
-        <div className="mx-auto flex min-h-[400px] max-w-6xl flex-col justify-between gap-12 px-6 py-16 sm:px-10 lg:px-12 lg:py-24">
+        {/* Hero Content */}
+        <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-16 md:py-20 lg:px-8">
 
-          <div className="max-w-3xl">
-            <p className="mb-5 inline-flex items-center gap-2 text-[12px] font-bold uppercase tracking-[0.22em] text-amber-400">
+          <div className="max-w-2xl">
+
+            {/* Label */}
+            <p className="mb-4 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400 sm:mb-5 sm:text-xs">
               <span className="h-2 w-2 rounded-full bg-amber-400" />
               About SliceHouse
             </p>
 
-            <h1 className="max-w-3xl font-serif text-5xl leading-[1.02] tracking-tight sm:text-7xl">
+            {/* Heading */}
+            <h1 className="font-serif text-3xl font-semibold leading-[1.08] tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
               Better pizza,
-              <br />
-              made <span className="text-amber-400">your</span> way.
+              <br className="hidden sm:block" />
+              made{' '}
+              <span className="text-amber-400">
+                your
+              </span>{' '}
+              way.
             </h1>
 
-            <p className="mt-7 max-w-2xl text-[15px] leading-relaxed text-white/75 sm:text-lg">
+            {/* Description */}
+            <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/75 sm:mt-6 sm:text-base md:text-lg">
               SliceHouse is a modern pizza ordering platform designed to make
               customization, checkout, and order tracking simple from the
               first click to your doorstep.
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <span className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-white/80 backdrop-blur-sm">
+            {/* Tags */}
+            <div className="mt-6 flex flex-wrap gap-2 sm:mt-8 sm:gap-3">
+
+              <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs text-white/80 backdrop-blur-sm sm:px-4 sm:py-2 sm:text-sm">
                 Custom pizzas
               </span>
-              <span className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-white/80 backdrop-blur-sm">
+
+              <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs text-white/80 backdrop-blur-sm sm:px-4 sm:py-2 sm:text-sm">
                 Easy checkout
               </span>
-              <span className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-white/80 backdrop-blur-sm">
+
+              <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs text-white/80 backdrop-blur-sm sm:px-4 sm:py-2 sm:text-sm">
                 Order tracking
               </span>
+
             </div>
+
           </div>
 
-          <div className="flex w-fit items-center gap-4 border-l border-white/20 pl-5 text-sm text-white/70">
-            <ChefHat className="size-7 text-amber-400" />
-            <span>
-              Built for a smoother
-              <br />
-              pizza experience.
-            </span>
-          </div>
         </div>
       </section>
 
       {/* What we do */}
-      <section className="mx-auto max-w-6xl px-6 py-16 sm:px-10 lg:px-12 lg:py-24">
+      <section className="mx-auto max-w-6xl px-5 py-14 sm:px-10 sm:py-16 lg:px-12 lg:py-24">
         <div className="grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-24">
 
           <div>
@@ -110,7 +118,7 @@ function AboutPage() {
               What we do
             </p>
 
-            <h2 className="mt-4 font-serif text-4xl font-semibold tracking-tight sm:text-5xl">
+            <h2 className="mt-4 font-serif text-3xl font-semibold tracking-tight sm:text-5xl">
               A clear path from craving to <span className="text-primary text-[#C1442D]">Checkout.</span>
             </h2>
           </div>
@@ -130,7 +138,7 @@ function AboutPage() {
         </div>
 
         {/* Features */}
-        <div className="mt-16 grid overflow-hidden rounded-2xl border border-border md:grid-cols-3">
+        <div className="mt-12 grid overflow-hidden rounded-2xl border border-border md:mt-16 md:grid-cols-3">
           {features.map(({ icon: Icon, title, text }) => (
             <article
               key={title}
@@ -154,14 +162,14 @@ function AboutPage() {
 
       {/* Pizza Builder */}
       <section className="border-y border-border bg-[#F5EFE6]">
-        <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 sm:px-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-24 lg:px-12 lg:py-24">
+        <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:px-10 sm:py-16 lg:grid-cols-[0.8fr_1.2fr] lg:gap-24 lg:px-12 lg:py-24">
 
           <div>
             <p className="text-[12px] font-bold text-[#C1442D] uppercase tracking-[0.22em] text-primary">
               Custom pizza builder
             </p>
 
-            <h2 className="mt-4 font-serif text-4xl font-semibold tracking-tight sm:text-5xl">
+            <h2 className="mt-4 font-serif text-3xl font-semibold tracking-tight sm:text-5xl">
               Make it your, <span className="text-primary text-[#C1442D]">One Choice</span> at a time.
             </h2>
 
@@ -171,15 +179,15 @@ function AboutPage() {
             </p>
 
             <div>
-              <a
-                href="#builder"
+              <Link
+                to="/menu"
                 className="mt-10 inline-flex items-center gap-2 font-sans text-sm font-semibold text-[#C1442D] transition-colors hover:text-[#1C1712]"
               >
                 Start building your pizza
                 <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">
-                  →
+                  <ArrowUpRight size={16} strokeWidth={2.5} />
                 </span>
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -208,7 +216,7 @@ function AboutPage() {
       </section>
 
       {/* Contact */}
-      <section className="mx-auto max-w-6xl px-6 py-16 sm:px-10 lg:px-12 lg:py-24">
+      <section className="mx-auto max-w-6xl px-5 py-14 sm:px-10 sm:py-16 lg:px-12 lg:py-24">
 
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
 
@@ -217,7 +225,7 @@ function AboutPage() {
               Get in touch
             </p>
 
-            <h2 className="mt-4 font-serif text-4xl font-semibold tracking-tight sm:text-5xl">
+            <h2 className="mt-4 font-serif text-3xl font-semibold tracking-tight sm:text-5xl">
               Have a <span className="text-primary">question</span>?
             </h2>
 
@@ -274,3 +282,5 @@ function AboutPage() {
 }
 
 export default AboutPage
+
+

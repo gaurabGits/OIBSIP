@@ -1,7 +1,6 @@
 ﻿import HeroSection from '../../component/Landing Page/HeroSection';
 import FeatureSection from '../../component/Landing Page/FeatureSection';
 import MenuSection from '../../component/Landing Page/MenuSection';
-import { Star} from 'lucide-react';
 
 
 
