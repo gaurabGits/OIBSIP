@@ -1,2 +1,148 @@
-﻿@import "tailwindcss"
+@import "tailwindcss";
+
+html {
+  scroll-behavior: smooth;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  overflow-x: hidden;
+}
+
+img,
+svg,
+video,
+iframe {
+  max-width: 100%;
+}
+:is(h1, h2, h3, p, span, a, button, label, li) {
+  overflow-wrap: break-word;
+}
+
+p {
+  max-width: 100%;
+}
+
+.page-transition {
+  animation: page-fade-in 0.34s ease both;
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pizza-orbit-frame {
+  --pizza-stage-scale: 1;
+  --pizza-stage-size: 600px;
+  width: min(600px, 100%);
+  height: min(600px, 72vw);
+  min-height: 350px;
+  display: grid;
+  place-items: center;
+  overflow: visible;
+}
+
+.pizza-orbit-stage {
+  transform: scale(var(--pizza-stage-scale));
+  transform-origin: center;
+}
+
+@media (max-width: 1279px) {
+  .pizza-orbit-frame {
+    --pizza-stage-scale: 0.88;
+    height: 520px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .pizza-orbit-frame {
+    --pizza-stage-scale: 0.82;
+    height: 500px;
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .pizza-orbit-frame {
+    --pizza-stage-scale: 0.66;
+    width: min(calc(var(--pizza-stage-size) * var(--pizza-stage-scale)), 100%);
+    height: 410px;
+    min-height: 380px;
+    overflow: hidden;
+  }
+
+  .pizza-orbit-stage {
+    justify-self: center;
+  }
+
+  .pizza-main-img {
+    left: 50% !important;
+    top: 22px !important;
+    transform: translateX(-50%);
+  }
+
+  h1 {
+    font-size: clamp(2rem, 11vw, 3rem) !important;
+  }
+
+  h2 {
+    font-size: clamp(1.75rem, 8vw, 2.5rem) !important;
+  }
+
+  :is(h1, h2, h3, p) {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 479px) {
+  .pizza-orbit-frame {
+    --pizza-stage-scale: 0.54;
+    width: min(calc(var(--pizza-stage-size) * var(--pizza-stage-scale)), 100%);
+    height: 350px;
+    min-height: 340px;
+  }
+
+  .pizza-main-img {
+    top: 16px !important;
+  }
+
+  .pizza-chip-label {
+    max-width: 240px;
+    padding-inline: 1rem;
+  }
+
+  .pizza-chip-label span {
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
 
