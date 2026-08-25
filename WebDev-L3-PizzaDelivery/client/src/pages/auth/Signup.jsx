@@ -1,4 +1,5 @@
-import React, { use, useState } from 'react';
+﻿import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { MoveLeft } from 'lucide-react';
 
 function SignUpPage() {
@@ -33,7 +34,7 @@ function SignUpPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden"
+      className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10 sm:py-12"
       style={{
         background: `
           radial-gradient(ellipse 600px 400px at 70% 20%, rgba(227,162,59,0.06), transparent 50%),
@@ -43,11 +44,11 @@ function SignUpPage() {
       }}
     >
       {/* Card */}
-      <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-[#F0E9DD] p-10 relative z-10">
+      <div className="relative z-10 w-full max-w-md rounded-3xl border border-[#F0E9DD] bg-white p-6 shadow-xl sm:p-10">
         {/* Header */}
         <div className="flex items-center justify-between mb-6 gap-3">
           <div className="min-w-0">
-            <h1 className="text-[26px] font-extrabold text-[#1a1a1a] tracking-tight leading-none whitespace-nowrap">SIGN UP</h1>
+            <h1 className="text-[24px] font-extrabold leading-none tracking-tight text-[#1a1a1a] sm:text-[26px]">SIGN UP</h1>
             <p className="text-[13px] font-bold text-[#4a4a4a] mt-1.5 tracking-wide whitespace-nowrap">JOIN THE PARTY!</p>
           </div>
         </div>
@@ -135,7 +136,7 @@ function SignUpPage() {
                     </div>
                 </div>
 
-                <div className="flex mt-8 items-center gap-4">
+                <div className="mt-8 flex items-center gap-3 sm:gap-4">
                 {/* Circle Back Button */}
                 <button
                     onClick={handleBack}
@@ -175,9 +176,9 @@ function SignUpPage() {
         {/* Footer Link */}
         <p className="text-center text-sm text-[#4a4a4a] mt-6">
           Already have an account?{' '}
-          <a href="/login" className="font-bold text-[#E8641F] hover:text-[#c94a1f]">
+          <Link to="/login" className="font-bold text-[#E8641F] hover:text-[#c94a1f]">
             Log In
-          </a>
+          </Link>
         </p>
       </div>
     </div>
