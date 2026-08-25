@@ -3,6 +3,7 @@ import SignupPage from './../pages/auth/Signup';
 import LoginPage from './../pages/auth/Login';
 import AboutPage from './../pages/public/AboutPage';
 import MenuPage from './../pages/public/MenuPage';
+import ForgotPasswordPage from './../pages/auth/ForgotPasswordPage';
 
 export const routes = [
     {
@@ -24,5 +25,9 @@ export const routes = [
     {
         path: "/signup",
         element: <SignupPage />
+    },
+    {
+        path: "/login/ForgotPassword",
+        element: <ForgotPasswordPage />
     }
 ]
