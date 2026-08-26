@@ -44,7 +44,7 @@ function MenuPage() {
 
                     <div className="max-w-2xl">
 
-                        <p className="mb-4 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400 sm:mb-5 sm:text-xs">
+                        <p className="mt-10 mb-4 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400 sm:mb-5 sm:text-xs">
                             <UtensilsCrossed
                                 className="h-3.5 w-3.5"
                                 strokeWidth={2.5}

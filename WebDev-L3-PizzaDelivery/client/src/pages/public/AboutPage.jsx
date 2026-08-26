@@ -42,7 +42,7 @@ function AboutPage() {
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
 
       {/* Hero */}
-      <section className="relative isolate overflow-hidden text-white">
+      <section className="relative isolate  overflow-hidden text-white">
 
         {/* Background image */}
         <div
@@ -64,7 +64,7 @@ function AboutPage() {
           <div className="max-w-2xl">
 
             {/* Label */}
-            <p className="mb-4 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400 sm:mb-5 sm:text-xs">
+            <p className="mt-10 mb-4 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400 sm:mb-5 sm:text-xs">
               <span className="h-2 w-2 rounded-full bg-amber-400" />
               About SliceHouse
             </p>

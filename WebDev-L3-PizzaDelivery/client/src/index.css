@@ -19,6 +19,7 @@ video,
 iframe {
   max-width: 100%;
 }
+
 :is(h1, h2, h3, p, span, a, button, label, li) {
   overflow-wrap: break-word;
 }
@@ -26,6 +27,8 @@ iframe {
 p {
   max-width: 100%;
 }
+
+/* PAGE TRANSITION */
 
 .page-transition {
   animation: page-fade-in 0.34s ease both;
@@ -43,91 +46,636 @@ p {
   }
 }
 
-.pizza-orbit-frame {
-  --pizza-stage-scale: 1;
-  --pizza-stage-size: 600px;
-  width: min(600px, 100%);
-  height: min(600px, 72vw);
-  min-height: 350px;
+/* HERO */
+
+.hero-section {
+  position: relative;
+  overflow: hidden;
+  background: #faf6ef;
+}
+
+.hero-container {
+  width: 100%;
+  max-width: 1280px;
+  min-height: 700px;
+  margin: 0 auto;
+  padding: 120px 32px 80px;
   display: grid;
-  place-items: center;
-  overflow: visible;
+  grid-template-columns: minmax(0, 0.9fr) minmax(560px, 1.1fr);
+  align-items: center;
+  gap: 20px;
 }
 
-.pizza-orbit-stage {
-  transform: scale(var(--pizza-stage-scale));
+/* HERO CONTENT */
+
+.hero-content {
+  position: relative;
+  z-index: 20;
+  text-align: left;
+}
+
+.hero-title {
+  margin: 0;
+  font-family: "Fraunces", serif;
+  font-size: clamp(2.5rem, 5vw, 3.8rem);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  color: #1c1712;
+}
+
+.hero-title span {
+  color: #c1442d;
+}
+
+.hero-description {
+  max-width: 520px;
+  margin: 20px 0 0;
+  color: rgba(28, 23, 18, 0.52);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.hero-description span {
+  font-family: "Fraunces", serif;
+  color: #1c1712;
+  font-size: 1.2rem;
+  font-style: italic;
+  font-weight: 500;
+}
+
+/* HERO BUTTONS */
+
+.hero-buttons {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 28px;
+}
+
+.hero-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border: 0;
+  border-radius: 999px;
+  background: #c1442d;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 12px 28px -10px rgba(193, 68, 45, 0.35);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.hero-primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 35px -12px rgba(193, 68, 45, 0.4);
+}
+
+.hero-menu-btn {
+  padding: 0 0 5px;
+  border: 0;
+  border-bottom: 2px solid #1c1712;
+  background: transparent;
+  color: #1c1712;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.hero-menu-btn:hover {
+  border-color: #c1442d;
+  color: #c1442d;
+}
+
+/* HERO STATS */
+
+.hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 42px;
+  max-width: 500px;
+  margin-top: 36px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(28, 23, 18, 0.08);
+}
+
+.hero-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hero-stat b {
+  color: #1c1712;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.hero-stat small {
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.hero-stat span {
+  color: rgba(28, 23, 18, 0.42);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* PIZZA SHOWCASE */
+
+.pizza-showcase {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.pizza-stage {
+  position: relative;
+  width: 600px;
+  height: 600px;
+  flex-shrink: 0;
+}
+
+/* OUTER CIRCLE */
+
+.pizza-circle {
+  position: absolute;
+  inset: 30px;
+  z-index: 1;
+  border: 2px dashed rgba(193, 68, 45, 0.2);
+  border-radius: 50%;
+}
+
+/* MAIN PIZZA */
+
+.pizza-image {
+  position: absolute;
+  top: 50px;
+  left: 50px;
+  z-index: 2;
+  width: 500px;
+  height: 500px;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 20px 44px rgba(28, 23, 18, 0.2));
+}
+
+/* INGREDIENT ORBIT */
+
+.ingredient-wheel {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  width: 600px;
+  height: 600px;
   transform-origin: center;
+  transition: transform 1000ms cubic-bezier(0.35, 0, 0.2, 1);
+  will-change: transform;
 }
 
-@media (max-width: 1279px) {
-  .pizza-orbit-frame {
-    --pizza-stage-scale: 0.88;
-    height: 520px;
+/* INGREDIENT */
+
+.ingredient {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.ingredient-inner {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  overflow: hidden;
+  border: 2px solid rgba(28, 23, 18, 0.1);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 10px 28px -8px rgba(28, 23, 18, 0.3);
+  transition:
+    transform 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 350ms ease,
+    box-shadow 350ms ease;
+}
+
+.ingredient-inner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ACTIVE INGREDIENT */
+
+.ingredient-inner.active {
+  transform: scale(1.18);
+  border: 4px solid #c1442d;
+  box-shadow:
+    0 12px 30px -8px rgba(28, 23, 18, 0.3),
+    0 0 0 8px rgba(193, 68, 45, 0.08),
+    0 0 30px rgba(193, 68, 45, 0.16);
+  animation: ingredient-glow 2s ease-in-out infinite;
+}
+
+/* ACTIVE INGREDIENT LABEL */
+
+.active-label {
+  position: absolute;
+  z-index: 30;
+  width: max-content;
+  transform: translateX(-50%);
+  pointer-events: none;
+  transition:
+    left 1000ms cubic-bezier(0.35, 0, 0.2, 1),
+    top 1000ms cubic-bezier(0.35, 0, 0.2, 1);
+  animation: label-enter 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* LABEL CONNECTOR */
+
+.label-line {
+  display: flex;
+  justify-content: center;
+  height: 18px;
+}
+
+.label-line span {
+  position: relative;
+  width: 1px;
+  height: 18px;
+  background: linear-gradient(
+    to bottom,
+    rgba(193, 68, 45, 0.7),
+    rgba(193, 68, 45, 0.1)
+  );
+}
+
+.label-line span::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: #c1442d;
+  box-shadow: 0 0 0 4px rgba(193, 68, 45, 0.08);
+}
+
+/* LABEL CARD */
+
+.label-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 185px;
+  padding: 10px 15px;
+  border: 1px solid rgba(193, 68, 45, 0.16);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow:
+    0 18px 45px rgba(28, 23, 18, 0.14),
+    0 4px 12px rgba(28, 23, 18, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.label-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #c1442d;
+  box-shadow: 0 0 0 5px rgba(193, 68, 45, 0.08);
+}
+
+.label-title {
+  color: #c1442d;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.label-desc {
+  margin-top: 3px;
+  color: rgba(28, 23, 18, 0.55);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+/* INGREDIENT GLOW ANIMATION */
+
+@keyframes ingredient-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 12px 30px -8px rgba(28, 23, 18, 0.3),
+      0 0 0 8px rgba(193, 68, 45, 0.08),
+      0 0 20px rgba(193, 68, 45, 0.08);
+  }
+
+  50% {
+    box-shadow:
+      0 12px 30px -8px rgba(28, 23, 18, 0.3),
+      0 0 0 10px rgba(193, 68, 45, 0.05),
+      0 0 34px rgba(193, 68, 45, 0.18);
   }
 }
+
+/* LABEL ENTER ANIMATION */
+
+@keyframes label-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px) scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+/* LARGE TABLET */
+
+@media (max-width: 1200px) {
+  .hero-container {
+    grid-template-columns: minmax(0, 0.9fr) minmax(500px, 1fr);
+    gap: 0;
+    padding-inline: 24px;
+  }
+
+  .pizza-stage {
+    transform: scale(0.9);
+    transform-origin: center;
+    margin: -30px;
+  }
+
+  .pizza-showcase {
+    justify-content: center;
+  }
+}
+
+/* TABLET */
 
 @media (max-width: 1023px) {
-  .pizza-orbit-frame {
-    --pizza-stage-scale: 0.82;
-    height: 500px;
-    margin-inline: auto;
+  .hero-container {
+    grid-template-columns: 1fr 1fr;
+    min-height: 650px;
+    padding: 110px 24px 70px;
+  }
+
+  .hero-title {
+    font-size: clamp(2.4rem, 5vw, 3.3rem);
+  }
+
+  .hero-description {
+    font-size: 0.95rem;
+  }
+
+  .hero-stats {
+    gap: 28px;
+  }
+
+  .pizza-stage {
+    transform: scale(0.78);
+    transform-origin: center;
+    margin: -65px;
+  }
+
+  .pizza-showcase {
+    justify-content: center;
   }
 }
+
+/* MOBILE */
 
 @media (max-width: 767px) {
-  .pizza-orbit-frame {
-    --pizza-stage-scale: 0.66;
-    width: min(calc(var(--pizza-stage-size) * var(--pizza-stage-scale)), 100%);
-    height: 410px;
-    min-height: 380px;
-    overflow: hidden;
+  .hero-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-height: auto;
+    margin: 0 auto;
+    padding: 105px 20px 45px;
   }
 
-  .pizza-orbit-stage {
-    justify-self: center;
-  }
-
-  .pizza-main-img {
-    left: 50% !important;
-    top: 22px !important;
-    transform: translateX(-50%);
-  }
-
-  h1 {
-    font-size: clamp(2rem, 11vw, 3rem) !important;
-  }
-
-  h2 {
-    font-size: clamp(1.75rem, 8vw, 2.5rem) !important;
-  }
-
-  :is(h1, h2, h3, p) {
-    max-width: 100%;
-  }
-}
-
-@media (max-width: 479px) {
-  .pizza-orbit-frame {
-    --pizza-stage-scale: 0.54;
-    width: min(calc(var(--pizza-stage-size) * var(--pizza-stage-scale)), 100%);
-    height: 350px;
-    min-height: 340px;
-  }
-
-  .pizza-main-img {
-    top: 16px !important;
-  }
-
-  .pizza-chip-label {
-    max-width: 240px;
-    padding-inline: 1rem;
-  }
-
-  .pizza-chip-label span {
-    white-space: normal;
+  .hero-content {
+    width: 100%;
     text-align: center;
   }
+
+  .hero-title {
+    margin: 0;
+    font-size: clamp(2.2rem, 10vw, 3rem);
+    line-height: 1.05;
+  }
+
+  .hero-description {
+    max-width: 520px;
+    margin: 22px auto 0;
+    font-size: 0.92rem;
+    line-height: 1.7;
+  }
+
+  .hero-buttons {
+    width: 100%;
+    margin-top: 27px;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .hero-primary-btn {
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+  }
+
+  .hero-menu-btn {
+    margin-top: 0;
+  }
+
+  .time-hero{
+    white-space: nowrap;
+  }
+
+  .hero-stats {
+    width: 100%;
+    max-width: 500px;
+    justify-content: center;
+    gap: 30px;
+    margin: 34px auto 0;
+    padding-top: 20px;
+  }
+
+  .hero-stat b {
+    font-size: 1.45rem;
+  }
+
+  .hero-stat span {
+    font-size: 0.56rem;
+  }
+
+  /*===================================
+     MOBILE PIZZA AREA
+
+     Extra top space keeps the pizza
+     completely separated from stats.
+  ===================================== */
+
+  .pizza-showcase {
+    position: relative;
+    width: 100%;
+    height: 445px;
+    margin-top: 45px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    overflow: visible;
+  }
+
+  .pizza-stage {
+    position: relative;
+    width: 600px;
+    height: 600px;
+    flex-shrink: 0;
+    margin: 0;
+    transform: scale(0.68);
+    transform-origin: center top;
+  }
 }
+
+/* SMALL MOBILE */
+
+@media (max-width: 479px) {
+  .hero-container {
+    padding: 100px 16px 40px;
+  }
+
+  .hero-title {
+    font-size: clamp(2.15rem, 10.5vw, 2.8rem);
+  }
+
+  .hero-description {
+    margin-top: 20px;
+    font-size: 0.88rem;
+  }
+
+  .hero-buttons {
+    width: 100%;
+    margin-top: 27px;
+    gap: 14px;
+  }
+
+  .hero-primary-btn {
+    width: auto;
+    min-width: 220px;
+    justify-content: center;
+  }
+
+  .hero-menu-btn {
+    margin-top: 2px;
+  }
+
+  .hero-stats {
+    gap: 20px;
+    margin-top: 32px;
+    padding-top: 19px;
+  }
+
+  .hero-stat b {
+    font-size: 1.3rem;
+  }
+
+  .hero-stat span {
+    font-size: 0.5rem;
+    letter-spacing: 0.07em;
+  }
+
+  /*re space between stats and pizza */
+
+  .pizza-showcase {
+    height: 420px;
+    margin-top: 50px;
+  }
+
+  /*ightly larger pizza */
+
+  .pizza-stage {
+    transform: scale(0.65);
+    transform-origin: center top;
+  }
+
+  .label-card {
+    min-width: 155px;
+    padding: 9px 11px;
+    border-radius: 16px;
+  }
+
+  .label-title {
+    font-size: 9px;
+  }
+
+  .label-desc {
+    font-size: 10px;
+  }
+}
+
+
+/* VERY SMALL PHONES */
+
+@media (max-width: 360px) {
+  .hero-container {
+    padding-top: 95px;
+  }
+
+  .hero-stats {
+    gap: 14px;
+  }
+
+  .hero-stat b {
+    font-size: 1.2rem;
+  }
+
+  .hero-stat span {
+    font-size: 0.47rem;
+  }
+
+  .pizza-showcase {
+    height: 395px;
+    margin-top: 45px;
+  }
+
+  .pizza-stage {
+    transform: scale(0.60);
+    transform-origin: center top;
+  }
+}
+
+/* REDUCED MOTION */
 
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -143,6 +691,3 @@ p {
     transition-duration: 0.01ms !important;
   }
 }
-
-
-
