@@ -82,7 +82,7 @@ function LoginPage() {
           
           </div>
 
-          <div className="text-right !mt-2">
+          <div className="text-right mt-2!">
             <Link
               to="/login/ForgotPassword"
               >
