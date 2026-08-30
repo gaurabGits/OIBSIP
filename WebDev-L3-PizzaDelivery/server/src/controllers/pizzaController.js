@@ -3,12 +3,37 @@ const Pizza = require("../models/Pizza");
 
 const getPizzas = async (req, res) => {
     try {
-        const pizzas = await Pizza.find();
+        const { search, category, page = 1, limit = 10 } = req.query;
+
+        const filter = {};
+
+        if (search) {
+            filter.name = {
+                $regex: search,
+                $options: "i",
+            };
+        }
+
+        if (category) {
+            filter.category = category;
+        }
+
+        const skip = (page - 1) * limit;
+
+        const pizzas = await Pizza.find(filter)
+            .skip(skip)
+            .limit(Number(limit));
+
+        const totalPizzas = await Pizza.countDocuments(filter);
 
         res.status(200).json({
             count: pizzas.length,
+            total: totalPizzas,
+            page: Number(page),
+            totalPages: Math.ceil(totalPizzas / limit),
             pizzas,
         });
+
     } catch (error) {
         res.status(500).json({
             message: "Server error",
