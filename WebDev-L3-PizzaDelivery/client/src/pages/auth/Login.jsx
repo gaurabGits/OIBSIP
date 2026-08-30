@@ -20,7 +20,7 @@ function LoginPage() {
 
   return (
     <div
-      className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10 sm:py-12"
+      className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10 sm:py-1"
       style={{
         background: `
           radial-gradient(ellipse 600px 400px at 70% 20%, rgba(227,162,59,0.06), transparent 50%),

@@ -35,26 +35,21 @@ function Navbar() {
 
   const location = useLocation()
 
-  // Show navbar when scrolling up, hide when scrolling down
+  /* Show navbar when scrolling up */
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
 
-      // Always show navbar near the top
       if (currentScrollY <= 10) {
         setShowNavbar(true)
         lastScrollY.current = currentScrollY
         return
       }
 
-      // Scrolling down
       if (currentScrollY > lastScrollY.current) {
         setShowNavbar(false)
         setProfileOpen(false)
-      }
-
-      // Scrolling up
-      if (currentScrollY < lastScrollY.current) {
+      } else if (currentScrollY < lastScrollY.current) {
         setShowNavbar(true)
       }
 
@@ -70,9 +65,9 @@ function Navbar() {
     }
   }, [])
 
-  // Close profile dropdown when clicking outside
+  /* Close profile dropdown when clicking outside */
   useEffect(() => {
-    function handleClickOutside(e) {
+    const handleClickOutside = (e) => {
       if (
         profileRef.current &&
         !profileRef.current.contains(e.target)
@@ -88,7 +83,7 @@ function Navbar() {
     }
   }, [])
 
-  // Close menus when changing page
+  /* Close mobile menu when route changes */
   useEffect(() => {
     setMobileOpen(false)
     setProfileOpen(false)
@@ -106,25 +101,20 @@ function Navbar() {
 
   return (
     <header
-      className={`fixed left-0 top-0 z-50 w-full shadow-lg shadow-red-900/30 transition-transform duration-300 ease-in-out ${
+      className={`fixed left-0 top-0 z-50 w-full transition-transform duration-300 ease-in-out ${
         showNavbar ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
-      <div className="border-t bg-gradient-to-r from-[#c1121f] to-[#e63946] px-3 sm:px-5 md:px-10">
-        <nav className="mx-auto flex min-h-[64px] max-w-7xl items-center gap-3 px-2 py-2.5 sm:min-h-[72px] sm:gap-6 sm:px-5">
-
-          {/* Logo */}
-          <Link
-            to="/"
-            aria-label="SliceHouse home"
-            className="shrink-0"
-          >
+      {/* Main Navbar */}
+      <div className="bg-gradient-to-r from-[#c1121f] via-[#d71920] to-[#e63946] shadow-lg shadow-red-900/30">
+        <nav className="mx-auto flex min-h-[68px] max-w-7xl items-center gap-3 px-3 py-3 sm:min-h-[72px] sm:px-5 md:px-8 lg:px-10">
+          <div className="shrink-0">
             <SystemLogo />
-          </Link>
+          </div>
 
           {/* Desktop Navigation */}
-          <div className="flex min-w-0 flex-1 justify-center">
-            <div className="hidden items-center gap-1 lg:flex">
+          <div className="hidden min-w-0 flex-1 justify-center lg:flex">
+            <div className="flex items-center gap-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.label}
@@ -147,12 +137,11 @@ function Navbar() {
           </div>
 
           {/* Right Side */}
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
 
-            {/* Logged In */}
+            {/* Logged In Desktop */}
             {isVerified ? (
               <div className="hidden items-center gap-3 lg:flex">
-
                 <div
                   className="relative"
                   ref={profileRef}
@@ -190,7 +179,6 @@ function Navbar() {
                   {/* Profile Dropdown */}
                   {profileOpen && (
                     <div className="absolute right-0 top-[calc(100%+10px)] w-64 overflow-hidden rounded-2xl bg-[#fffaf2] shadow-2xl ring-1 ring-black/5">
-
                       <div className="flex items-center gap-3 border-b border-stone-200 bg-stone-50 px-4 py-4">
                         {demoUser.avatarUrl ? (
                           <img
@@ -216,7 +204,6 @@ function Navbar() {
                       </div>
 
                       <div className="flex flex-col py-1.5">
-
                         <a
                           href="#profile"
                           className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100"
@@ -244,14 +231,12 @@ function Navbar() {
                           <LogOut className="h-4 w-4" />
                           Log Out
                         </button>
-
                       </div>
                     </div>
                   )}
                 </div>
               </div>
             ) : (
-
               /* Logged Out Desktop */
               <div className="hidden items-center gap-2 lg:flex">
 
@@ -294,7 +279,7 @@ function Navbar() {
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Toggle menu"
               aria-expanded={mobileOpen}
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-[#fffaf2] transition-colors hover:bg-white/10 lg:hidden"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-[#fffaf2] transition-colors hover:bg-white/10 lg:hidden"
             >
               {mobileOpen ? (
                 <X className="h-7 w-7" />
@@ -307,96 +292,93 @@ function Navbar() {
 
         {/* Mobile Menu */}
         {mobileOpen && (
-          <div className="mx-1 mb-4 rounded-2xl bg-white/10 shadow-xl backdrop-blur-sm sm:mx-4 lg:hidden">
-            <div className="flex flex-col gap-1 px-4 pb-5 pt-3 sm:px-6">
+          <div className="border-t border-white/10 bg-gradient-to-b from-[#c1121f] to-[#a90f1b] px-3 pb-4 sm:px-5 lg:hidden">
+            <div className="mx-auto max-w-7xl overflow-hidden rounded-2xl border border-white/10 bg-black/10 shadow-xl backdrop-blur-sm">
+              <div className="flex flex-col px-4 pb-5 pt-3 sm:px-6">
 
-              {/* Mobile Links */}
-              {navLinks.map((link) => (
-                <Link
-                  key={link.label}
-                  to={link.href}
-                  className={`border-b border-white/10 py-3 font-semibold transition-colors ${
-                    isActive(link.href)
-                      ? 'text-amber-400'
-                      : 'text-[#fffaf2] hover:text-amber-400'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
+                {/* Mobile Links */}
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.label}
+                    to={link.href}
+                    className={`border-b border-white/10 py-3.5 font-semibold transition-colors ${
+                      isActive(link.href)
+                        ? 'text-amber-400'
+                        : 'text-[#fffaf2] hover:text-amber-400'
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
 
-              {/* Mobile Logged In */}
-              {isVerified ? (
-                <>
-                  <div className="mt-3 flex items-center gap-3 rounded-xl bg-white/10 px-3 py-3">
+                {/* Mobile Logged In */}
+                {isVerified ? (
+                  <>
+                    <div className="mt-4 flex items-center gap-3 rounded-xl bg-white/10 px-3 py-3">
+                      {demoUser.avatarUrl ? (
+                        <img
+                          src={demoUser.avatarUrl}
+                          alt={demoUser.name}
+                          className="h-10 w-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="grid h-10 w-10 place-items-center rounded-full bg-amber-400 text-sm font-bold text-stone-900">
+                          {initials}
+                        </span>
+                      )}
 
-                    {demoUser.avatarUrl ? (
-                      <img
-                        src={demoUser.avatarUrl}
-                        alt={demoUser.name}
-                        className="h-10 w-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <span className="grid h-10 w-10 place-items-center rounded-full bg-amber-400 text-sm font-bold text-stone-900">
-                        {initials}
-                      </span>
-                    )}
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-[#fffaf2]">
+                          {demoUser.name}
+                        </p>
 
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-[#fffaf2]">
-                        {demoUser.name}
-                      </p>
-
-                      <p className="truncate text-xs text-white/70">
-                        {demoUser.email}
-                      </p>
+                        <p className="truncate text-xs text-white/70">
+                          {demoUser.email}
+                        </p>
+                      </div>
                     </div>
+
+                    {/* Mobile Cart */}
+                    <Link
+                      to="/menu"
+                      className="mt-3 flex items-center justify-center gap-2 rounded-full bg-amber-400 px-5 py-3 font-extrabold text-stone-900 shadow-md transition hover:bg-amber-500"
+                    >
+                      <ShoppingCart className="h-[18px] w-[18px]" />
+                      Cart {cartCount > 0 && `(${cartCount})`}
+                    </Link>
+
+                    {/* Mobile Logout */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsVerified(false)
+                        setMobileOpen(false)
+                      }}
+                      className="mt-2 flex items-center justify-center gap-2 rounded-full border border-white/30 px-5 py-3 font-bold text-[#fffaf2] transition hover:bg-white/10"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Log Out
+                    </button>
+                  </>
+                ) : (
+                  /* Mobile Logged Out */
+                  <div className="mt-4 flex flex-col gap-2">
+                    <Link
+                      to="/login"
+                      className="rounded-full border border-white/30 px-5 py-3 text-center font-bold text-[#fffaf2] transition hover:bg-white/10"
+                    >
+                      Log In
+                    </Link>
+
+                    <Link
+                      to="/signup"
+                      className="rounded-full bg-amber-400 px-5 py-3 text-center font-extrabold text-stone-900 shadow-md transition hover:bg-amber-500"
+                    >
+                      Sign Up
+                    </Link>
                   </div>
-
-                  {/* Mobile Cart */}
-                  <Link
-                    to="/menu"
-                    className="mt-2 flex items-center justify-center gap-2 rounded-full bg-amber-400 px-5 py-3 font-extrabold text-stone-900 shadow-md transition hover:bg-amber-500"
-                  >
-                    <ShoppingCart className="h-[18px] w-[18px]" />
-                    Cart {cartCount > 0 && `(${cartCount})`}
-                  </Link>
-
-                  {/* Mobile Logout */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsVerified(false)
-                      setMobileOpen(false)
-                    }}
-                    className="mt-2 flex items-center justify-center gap-2 rounded-full border border-white/30 px-5 py-3 font-bold text-[#fffaf2] transition hover:bg-white/10"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Log Out
-                  </button>
-                </>
-              ) : (
-
-                /* Mobile Logged Out */
-                <div className="mt-3 flex flex-col gap-2">
-
-                  <Link
-                    to="/login"
-                    className="rounded-full border border-white/30 px-5 py-3 text-center font-bold text-[#fffaf2] transition hover:bg-white/10"
-                  >
-                    Log In
-                  </Link>
-
-                  <Link
-                    to="/signup"
-                    className="rounded-full bg-amber-400 px-5 py-3 text-center font-extrabold text-stone-900 shadow-md transition hover:bg-amber-500"
-                  >
-                    Sign Up
-                  </Link>
-
-                </div>
-              )}
-
+                )}
+              </div>
             </div>
           </div>
         )}
