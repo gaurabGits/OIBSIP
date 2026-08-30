@@ -2,19 +2,20 @@ const express = require("express");
 const cors = require("cors");
 
 const authRoutes = require("./routes/authRoutes");
+const pizzaRoutes = require("./routes/pizzaRoutes");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res)=>{
+app.get("/", (req, res) => {
     res.json({
-        message: "Pizza devlivery APIis running",
-    })
+        message: "Pizza delivery API is running",
+    });
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/pizza", pizzaRoutes);
 
-
-module.exports = app
+module.exports = app;
