@@ -5,6 +5,8 @@ const authRoutes = require("./routes/authRoutes");
 const pizzaRoutes = require("./routes/pizzaRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const inventoryRoutes = require("./routes/inventoryRoutes");
+const orderRoutes = require("./routes/orderRoutes");
+
 
 const app = express();
 
@@ -21,6 +23,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/pizza", pizzaRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/inventory", inventoryRoutes);
+app.use("/api/order", orderRoutes);
 
 
 module.exports = app;

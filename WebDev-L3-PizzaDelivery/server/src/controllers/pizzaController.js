@@ -251,5 +251,5 @@ module.exports = {
     getPizzaById,
     updatePizza,
     deletePizza,
-     calculateCustomPizza,
+    calculateCustomPizza,
 };
