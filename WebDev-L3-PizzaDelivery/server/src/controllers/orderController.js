@@ -7,9 +7,9 @@ const createOrder = async (req, res) => {
         baseId, 
         sauceId, 
         cheeseId, 
-        vegetableIds = [], } = req.body;
+        vegetableIds = [], } = req.body || {};
 
-    if (!userId) {
+    if (!req.user?.id) {
       return res.status(401).json({
         message: "Not authorized, user missing",
       });
@@ -154,7 +154,83 @@ const getMyOrders = async (req, res) => {
     }
 };
 
+const getAllOrders = async (req, res) => {
+    try {
+        const orders = await Order.find()
+            .populate("user", "fname phone email")
+            .populate("pizza.base", "name price")
+            .populate("pizza.sauce", "name price")
+            .populate("pizza.cheese", "name price")
+            .populate("pizza.vegetables", "name price")
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            count: orders.length,
+            orders,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "Server error",
+            error: error.message,
+        });
+    }
+};
+
+const updateOrderStatus = async (req, res) => {
+    try {
+        const { status } = req.body || {};
+
+        const allowedStatuses = [
+            "Order Received",
+            "In Kitchen",
+            "Sent to Delivery",
+            "Delivered",
+            "Cancelled",
+        ];
+
+        if (!status) {
+            return res.status(400).json({
+                message: "Order status is required",
+            });
+        }
+
+        if (!allowedStatuses.includes(status)) {
+            return res.status(400).json({
+                message: "Invalid order status",
+            });
+        }
+
+        const order = await Order.findByIdAndUpdate(
+            req.params.id,
+            { status },
+            {
+                new: true,
+                runValidators: true,
+            }
+        );
+
+        if (!order) {
+            return res.status(404).json({
+                message: "Order not found",
+            });
+        }
+
+        res.status(200).json({
+            message: "Order status updated successfully",
+            order,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "Server error",
+            error: error.message,
+        });
+    }
+};
+
 module.exports = {
   createOrder,
   getMyOrders,
+  getAllOrders,
+  updateOrderStatus,
 };
+
