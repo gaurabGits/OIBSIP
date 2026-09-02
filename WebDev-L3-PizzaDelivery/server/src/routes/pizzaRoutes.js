@@ -4,7 +4,8 @@ const {
     createPizza, 
     getPizzaById,
     updatePizza, 
-    deletePizza
+    deletePizza,
+    calculateCustomPizza,
 } = require ("../controllers/pizzaController");
 
 const admin = require("../middleware/adminMiddleware");
@@ -17,6 +18,8 @@ router.get("/", getPizzas);
 router.get("/:id", getPizzaById);
 
 router.post("/", protect, admin, createPizza);
+router.post("/custom", protect, calculateCustomPizza);
+
 router.put("/:id", protect, admin, updatePizza);
 router.delete("/:id", protect, admin, deletePizza);
 
