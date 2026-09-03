@@ -2,6 +2,11 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 72px;
+}
+
+:target {
+  scroll-margin-top: 72px;
 }
 
 * {
@@ -473,6 +478,14 @@ p {
 /* MOBILE */
 
 @media (max-width: 767px) {
+  html {
+    scroll-padding-top: 68px;
+  }
+
+  :target {
+    scroll-margin-top: 68px;
+  }
+
   .hero-container {
     display: flex;
     flex-direction: column;

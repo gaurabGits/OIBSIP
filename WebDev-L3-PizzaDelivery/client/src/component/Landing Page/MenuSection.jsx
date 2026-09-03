@@ -5,7 +5,7 @@ import { menu } from './../../services/data/menu';
 
 function MenuSection() {
     return (
-        <section className="w-full overflow-hidden bg-[#FAF6EF] py-12 sm:py-16 md:py-20">
+        <section id="menu" className="w-full overflow-hidden bg-[#FAF6EF] py-12 sm:py-16 md:py-20">
 
             <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
 
@@ -64,3 +64,4 @@ function MenuSection() {
 }
 
 export default MenuSection;
+

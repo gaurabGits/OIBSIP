@@ -1,16 +1,16 @@
-﻿import { Truck, Flame, Leaf, Pizza, ArrowUpRight } from 'lucide-react';
+import { Truck, Flame, Leaf, Pizza, ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const features = [
   {
     icon: Flame,
     title: 'Wood-Fired, Always',
-    text: 'Every pizza is baked at 900Â°F for a crisp base and smoky edge.',
+    text: 'Every pizza is baked at 900°F for a crisp base and smoky edge.',
   },
   {
     icon: Pizza,
     title: 'Build Your Own',
-    text: 'Pick your base, sauce, cheese, and toppings â€” review it all before you pay.',
+    text: 'Pick your base, sauce, cheese, and toppings — review it all before you pay.',
   },
   {
     icon: Truck,
@@ -26,7 +26,7 @@ const features = [
 
 function FeatureSection() {
   return (
-    <section className="relative overflow-hiddenbg-[#FFFFFF]   px-5 py-16 sm:py-20 md:px-10 lg:py-24">
+    <section id="features" className="relative overflow-hiddenbg-[#FFFFFF]   px-5 py-16 sm:py-20 md:px-10 lg:py-24">
       <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-24">
         {/* Left: copy + features */}
         <div>
@@ -97,4 +97,5 @@ function FeatureSection() {
 }
 
 export default FeatureSection;
+
 

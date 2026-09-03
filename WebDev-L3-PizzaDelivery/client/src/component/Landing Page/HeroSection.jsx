@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from "react-router-dom"
 import { ArrowUpRight } from 'lucide-react';
 
@@ -21,7 +21,6 @@ const STAGE = 600;
 const CENTER = STAGE / 2;
 const CIRCLE_SIZE = 540;
 const CIRCLE_RADIUS = CIRCLE_SIZE / 2;
-const PIZZA_SIZE = 500;
 const ITEM_SIZE = 72;
 const ANGLE_STEP = 360 / INGREDIENTS.length;
 const ROTATE_TIME = 1000;
@@ -65,7 +64,7 @@ function HeroSection() {
   const activePosition = getIngredientPosition(active);
 
   return (
-    <section className="hero-section">
+    <section id="hero" className="hero-section">
       <div className="hero-container">
         <div className="hero-content">
           <h1 className="hero-title">
@@ -81,7 +80,7 @@ function HeroSection() {
           </p>
 
           <div className="hero-buttons">
-            <button className="hero-primary-btn">
+            <button className="hero-primary-btn" type="button" data-scroll-target="menu">
               Customize Your Pizza
               <ArrowUpRight size={17} strokeWidth={2.5} />
             </button>

@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
   Menu as MenuIcon,
   X,
@@ -12,7 +12,7 @@ import SystemLogo from '../../assets/icons/SystemLogo'
 import { Link, useLocation } from 'react-router-dom'
 
 const navLinks = [
-  { label: 'Home', href: '/' },
+  { label: 'Home', href: '/#hero' },
   { label: 'Menu', href: '/menu' },
   { label: 'About Us', href: '/about' },
 ]
@@ -97,7 +97,7 @@ function Navbar() {
     .slice(0, 2)
     .toUpperCase()
 
-  const isActive = (href) => location.pathname === href
+  const isActive = (href) => location.pathname === href.split("#")[0]
 
   return (
     <header
