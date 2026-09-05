@@ -7,11 +7,19 @@ const createOrder = async (req, res) => {
         baseId, 
         sauceId, 
         cheeseId, 
-        vegetableIds = [], } = req.body || {};
+        vegetableIds = [],
+        paymentMethod,
+       } = req.body || {};
 
     if (!req.user?.id) {
       return res.status(401).json({
         message: "Not authorized, user missing",
+      });
+    }
+
+    if(!paymentMethod || !["esewa", "razorpay", "cash"].includes(paymentMethod)) {
+      return res.status(400).json({
+        message: "Invalid payment method",
       });
     }
 
@@ -87,31 +95,10 @@ const createOrder = async (req, res) => {
       },
 
       totalPrice,
-
+      paymentMethod,
       status: "Order Received",
-
       paymentStatus: "Pending",
     });
-
-
-    // 6. Decrease inventory stock 
-    await Inventory.findByIdAndUpdate(base._id, {
-      $inc: { stock: -1 }, //$inc used to increase and decrease the value
-    });
-
-    await Inventory.findByIdAndUpdate(sauce._id, {
-      $inc: { stock: -1 },
-    });
-
-    await Inventory.findByIdAndUpdate(cheese._id, {
-      $inc: { stock: -1 },
-    });
-
-    for (const vegetable of vegetables) {
-      await Inventory.findByIdAndUpdate(vegetable._id, {
-        $inc: { stock: -1 },
-      });
-    }
 
 
     // 7. Send response

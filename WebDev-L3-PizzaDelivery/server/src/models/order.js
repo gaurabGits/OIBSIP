@@ -52,6 +52,18 @@ const orderSchema = new mongoose.Schema(
             ],
             default: "Order Received",
         },
+      
+        paymentMethod: {
+            type: String,
+            enum: ["esewa", "razorpay", "cash"],
+            required: true,
+        },
+        
+        transactionUuid:{
+            type: String,
+            unique: true,
+            sparse: true,
+        },
 
         paymentStatus: {
             type: String,
