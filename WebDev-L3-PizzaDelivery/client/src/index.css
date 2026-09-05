@@ -1,12 +1,12 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 72px;
+  scroll-padding-top: 0;
 }
 
 :target {
-  scroll-margin-top: 72px;
+  scroll-margin-top: 0;
 }
 
 * {
@@ -479,11 +479,11 @@ p {
 
 @media (max-width: 767px) {
   html {
-    scroll-padding-top: 68px;
+    scroll-padding-top: 0;
   }
 
   :target {
-    scroll-margin-top: 68px;
+    scroll-margin-top: 0;
   }
 
   .hero-container {
@@ -704,3 +704,4 @@ p {
     transition-duration: 0.01ms !important;
   }
 }
+

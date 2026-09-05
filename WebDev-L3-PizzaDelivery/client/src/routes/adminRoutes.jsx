@@ -1,21 +1,20 @@
+import AdminDashboardPage from "../pages/admin/AdminDashboard";
+import AdminOrdersPage from "../pages/admin/AdminOrdersPage";
+import InventoryPage from "../pages/admin/InventoryPage";
 
 const adminRoutes = [
   {
-    path: 'dashboard',    
-    element: <div className="p-4">Admin Dashboard</div>
+    path: "dashboard",
+    element: <AdminDashboardPage />,
   },
   {
-    path: 'Orders',    
-    element: <div className="p-4">Admin Orders</div>
+    path: "orders",
+    element: <AdminOrdersPage />,
   },
   {
-    path: 'Inventory',
-    element: <div className="p-4">Admin Inventory</div>
+    path: "inventory",
+    element: <InventoryPage />,
   },
-  {
-    path: 'Settings',
-    element: <div className="p-4">Admin Settings</div>
-  }
 ];
 
 export default adminRoutes;
