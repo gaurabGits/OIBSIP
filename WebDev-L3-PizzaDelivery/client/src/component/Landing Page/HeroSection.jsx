@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { Link } from "react-router-dom"
 import { ArrowUpRight } from 'lucide-react';
 
@@ -8,6 +8,7 @@ import cheeseImg from '../../assets/images/cheese.png';
 import meatsImg from '../../assets/images/meats.png';
 import herbsImg from '../../assets/images/herbs.png';
 import veggiesImg from '../../assets/images/veggies.png';
+import { scrollToSection } from '../../utils/scrollToSection';
 
 const INGREDIENTS = [
   { name: 'Sauce', desc: 'San Marzano tomatoes', img: sauceImg },
@@ -80,14 +81,19 @@ function HeroSection() {
           </p>
 
           <div className="hero-buttons">
-            <button className="hero-primary-btn" type="button" data-scroll-target="menu">
+            <button
+              className="hero-primary-btn"
+              type="button"
+              onClick={() => scrollToSection('menu')}
+            >
               Customize Your Pizza
               <ArrowUpRight size={17} strokeWidth={2.5} />
             </button>
 
-            <Link 
+            <Link
               to="/menu"
-              className="hero-menu-btn">
+              className="hero-menu-btn"
+            >
               View Full Menu
             </Link>
           </div>
@@ -95,7 +101,7 @@ function HeroSection() {
           <div className="hero-stats">
             <div className="hero-stat">
               <b>4.9</b>
-              <span>★ 2k+ reviews</span>
+              <span>â˜… 2k+ reviews</span>
             </div>
 
             <div className="hero-stat">
