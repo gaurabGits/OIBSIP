@@ -1,20 +1,49 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 
 function LoginPage() {
-    const [show, setShow] = useState(false);
+
     const [formData, setFormData] = useState({
         emailOrPhone: '',
         password: '',
     });
+    const [errors, setErrors] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const validate = () => {
+        const newErrors = {};
+        if (!formData.emailOrPhone.trim()) {
+            newErrors.emailOrPhone = 'Email is required';
+        } else if (!/^\S+@\S+\.\S+$/.test(formData.emailOrPhone)) {
+            newErrors.emailOrPhone = 'Enter a valid email';
+        }
+        if (!formData.password) {
+            newErrors.password = 'Password is required';
+        } else if (formData.password.length < 6) {
+            newErrors.password = 'Password must be at least 6 characters';
+        }
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Login Submitted:', formData);
+        if (!validate()) return;
+
+        setIsLoading(true);
+        try {
+            // Replace this with your real admin login call
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+            console.log('Login Submitted:', formData);
+        } catch (err) {
+            setErrors({ form: 'Invalid credentials. Please try again.' });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -31,7 +60,7 @@ function LoginPage() {
 
             {/* Eyebrow badge + heading */}
             <div className="mb-6 w-full max-w-md flex flex-col items-center text-center sm:mb-8">
-                <h1 className="text-[22px] font-extrabold leading-tight tracking-tight text-[#1a1a1a] sm:text-[24px]">
+                <h1 className="text-[22px] font-extrabold leading-tight tracking-tight text-red-950  sm:text-[24px]">
                     ADMIN CONSOLE
                 </h1>
                 <p className="mt-1 text-sm text-[#7a7a7a]">
@@ -41,56 +70,70 @@ function LoginPage() {
 
             {/* Card */}
             <div className="relative z-10 w-full max-w-md rounded-3xl border border-[#F0E9DD] bg-white p-6 shadow-xl sm:p-8 md:p-10">
-                <form className="space-y-4" onSubmit={handleSubmit}>
+                <form className="space-y-3" onSubmit={handleSubmit} noValidate>
                     <div>
-                        <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-[#9a9a9a]">
+                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-red-950/40">
                             Email
                         </label>
                         <input
                             name="emailOrPhone"
                             type="text"
-                            required
                             value={formData.emailOrPhone}
                             onChange={handleChange}
-                            className="w-full rounded-full border-2 border-[#1a1a1a] bg-white px-5 py-3 text-[#1a1a1a] placeholder-[#b0b0b0] transition focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/30"
+                            disabled={isLoading}
+                            className={`w-full rounded-full border-2 bg-white px-5 py-3 text-[#1a1a1a] placeholder-[#b0b0b0] transition focus:outline-none focus:ring-2 disabled:opacity-60 disabled:cursor-not-allowed ${
+                                errors.emailOrPhone
+                                    ? 'border-red-500 focus:ring-red-500/30'
+                                    : 'border-red-950 focus:ring-red-950/40'
+                            }`}
                             placeholder="slicehouse@example.com"
                         />
+                        <p className="text-xs text-red-500 h-4 mt-1 px-2 leading-4">
+                            {errors.emailOrPhone}
+                        </p>
                     </div>
 
                     <div>
-                        <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-[#9a9a9a]">
+                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-red-950/40">
                             Password
                         </label>
                         <input
                             name="password"
-                            type={show ? "text" : "password"}
-                            required
+                            type= "password"
                             value={formData.password}
                             onChange={handleChange}
-                            className="w-full rounded-full border-2 border-[#1a1a1a] bg-white px-5 py-3 text-[#1a1a1a] placeholder-[#b0b0b0] transition focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/30"
+                            disabled={isLoading}
+                            className={`w-full rounded-full border-2  bg-white px-5 py-3 text-[#1a1a1a] placeholder-[#b0b0b0] transition focus:outline-none focus:ring-2 disabled:opacity-60 disabled:cursor-not-allowed ${
+                                errors.password
+                                    ? 'border-red-500 focus:ring-red-500/30'
+                                    : 'border-red-950 focus:ring-red-950/40'
+                            }`}
                             placeholder="Password"
                         />
-                        <div className="mt-2 flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                checked={show}
-                                onChange={() => setShow(!show)}
-                                className="h-4 w-4 rounded accent-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/40"
-                            />
-                            <span className="text-sm text-[#1a1a1a]">Show Password</span>
-                        </div>
+                        <p className="text-xs text-red-500 h-4 mt-1 px-2 leading-4">
+                            {errors.password}
+                        </p>
                     </div>
+
+                    {errors.form && (
+                        <p className="text-xs text-red-500 text-center">{errors.form}</p>
+                    )}
 
                     <button
                         type="submit"
-                        className="w-full cursor-pointer rounded-full bg-[#1a1a1a] py-4 text-white shadow-lg transform hover:scale-[1.02] transition duration-300 ease-in-out active:scale-[0.99]"
+                        disabled={isLoading}
+                        className="w-full mt-1 cursor-pointer rounded-full bg-red-950 py-4 text-white shadow-lg transform hover:text-amber-300 hover:scale-[1.02] transition duration-300 ease-in-out active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center"
                     >
-                        <div className="leading-tight">
-                            <div className="text-[15px] font-extrabold tracking-wide">LOG IN</div>
-                            <div className="mt-0.5 text-[10px] font-semibold tracking-wider opacity-90">
-                                ACCESS DASHBOARD
+                        {isLoading ? (
+                            <Loader2 className="h-5 w-5 animate-spin text-white" />
+                        ) : (
+                            <div className="leading-tight">
+                                <div className="text-[15px] font-extrabold tracking-wide">LOG IN</div>
+                                <div className="mt-0.5 text-[10px] font-semibold tracking-wider opacity-90">
+                                    ACCESS DASHBOARD
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </button>
                 </form>
 
