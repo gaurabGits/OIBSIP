@@ -1,26 +1,66 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import useAuth from '../../hooks/useAuth';
 
 function LoginPage() {
-  const [ show, setShow ] = useState(false)
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [show, setShow] = useState(false);
   const [formData, setFormData] = useState({
     emailOrPhone: '',
     password: '',
   });
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const successMessage = location.state?.message;
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.emailOrPhone.trim()) {
+      newErrors.emailOrPhone = 'Email is required';
+    } else if (!/^\S+@\S+\.\S+$/.test(formData.emailOrPhone)) {
+      newErrors.emailOrPhone = 'Enter a valid email';
+    }
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login Submitted:', formData);
+    if (!validate()) return;
+
+    setIsLoading(true);
+    try {
+      await login({
+        email: formData.emailOrPhone.trim(),
+        password: formData.password,
+      });
+
+      const redirectTo = location.state?.from?.pathname || '/menu';
+      navigate(redirectTo, { replace: true });
+    } catch (err) {
+      setErrors({
+        form: err.response?.data?.message || err.message || 'Login failed. Please try again.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div
-      className="relative mt-[68px] flex min-h-[calc(100svh-68px)] items-center justify-center overflow-x-hidden px-4 py-6 sm:mt-[72px] sm:min-h-[calc(100svh-72px)] sm:py-8"
+      className="relative flex min-h-svh w-full items-center justify-center overflow-x-hidden px-4 pt-[92px] pb-6 sm:pt-[96px] sm:pb-8"
       style={{
         background: `
           radial-gradient(ellipse 600px 400px at 70% 20%, rgba(227,162,59,0.06), transparent 50%),
@@ -40,70 +80,96 @@ function LoginPage() {
           </div>
         </div>
 
+        {successMessage && (
+          <p className="mb-4 rounded-2xl bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
+            {successMessage}
+          </p>
+        )}
+
         {/* Form */}
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-3" onSubmit={handleSubmit} noValidate>
           <div>
-            <label className="block text-xs font-bold tracking-widest text-[#9a9a9a] mb-2 uppercase">
+            <label className="block text-xs font-bold tracking-widest text-[#9a9a9a] mb-1.5 uppercase">
               Email
             </label>
             <input
               name="emailOrPhone"
               type="text"
-              required
               value={formData.emailOrPhone}
               onChange={handleChange}
-              className="w-full px-5 py-3 rounded-full border-2 border-[#E8641F] bg-white text-[#1a1a1a] placeholder-[#b0b0b0] focus:outline-none focus:ring-2 focus:ring-[#E8641F]/30 transition"
+              disabled={isLoading}
+              className={`w-full px-5 py-3 rounded-full border-2 bg-white text-[#1a1a1a] placeholder-[#b0b0b0] focus:outline-none focus:ring-2 transition disabled:opacity-60 disabled:cursor-not-allowed ${
+                errors.emailOrPhone
+                  ? 'border-red-500 focus:ring-red-500/30'
+                  : 'border-[#E8641F] focus:ring-[#E8641F]/30'
+              }`}
               placeholder="splicehouse@example.com"
             />
+            <p className="text-xs text-red-500 h-4 mt-1 px-2 leading-4">
+              {errors.emailOrPhone}
+            </p>
           </div>
 
           <div>
-            <label className="block text-xs font-bold tracking-widest text-[#9a9a9a] mb-2 uppercase">
+            <label className="block text-xs font-bold tracking-widest text-[#9a9a9a] mb-1.5 uppercase">
               Password
             </label>
             <input
               name="password"
-              type= {show ? "text" : "password"}
-              required
+              type={show ? 'text' : 'password'}
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-5 py-3 rounded-full border-2 border-[#E8641F] bg-white text-[#1a1a1a] placeholder-[#b0b0b0] focus:outline-none focus:ring-2 focus:ring-[#E8641F]/30 transition"
+              disabled={isLoading}
+              className={`w-full px-5 py-3 rounded-full border-2 bg-white text-[#1a1a1a] placeholder-[#b0b0b0] focus:outline-none focus:ring-2 transition disabled:opacity-60 disabled:cursor-not-allowed ${
+                errors.password
+                  ? 'border-red-500 focus:ring-red-500/30'
+                  : 'border-[#E8641F] focus:ring-[#E8641F]/30'
+              }`}
               placeholder="Password"
             />
-            <div className="mt-2 flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={show}
-                onChange={() => setShow(!show)}
-                className="h-4 w-4 accent-[#E8641F] focus:ring-2 focus:ring-[#E8641F]/40 focus:outline-none rounded"
-              />
-              <span className="text-sm text-[#1a1a1a]">Show Password</span>
-            </div>
-          
-          </div>
-
-          <div className="text-right mt-2!">
-            <Link
-              to="/login/ForgotPassword"
-              >
+            <p className="text-xs text-red-500 h-4 mt-1 px-2 leading-4">
+              {errors.password}
+            </p>
+            <div className="mt-1 flex items-center justify-between">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={show}
+                  onChange={() => setShow(!show)}
+                  disabled={isLoading}
+                  className="h-4 w-4 accent-[#E8641F] focus:ring-2 focus:ring-[#E8641F]/40 focus:outline-none rounded"
+                />
+                <span className="text-sm text-[#1a1a1a]">Show Password</span>
+              </label>
+              <Link to="/login/ForgotPassword" className="text-sm font-bold text-[#E8641F] hover:text-[#c94a1f]">
                 Forgot Password?
               </Link>
+            </div>
           </div>
+
+          {errors.form && (
+            <p className="text-xs text-red-500 text-center">{errors.form}</p>
+          )}
 
           <button
             type="submit"
-            className="w-full py-4 cursor-pointer rounded-full text-white shadow-lg transition transform hover:scale-[1.02] active:scale-[0.99]"
+            disabled={isLoading}
+            className="w-full mt-8 py-4 cursor-pointer rounded-full text-white shadow-lg transition transform hover:scale-[1.02] active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center"
             style={{
               background: 'linear-gradient(90deg, #F0631E 0%, #F7A11E 100%)',
               boxShadow: '0 10px 22px rgba(240, 99, 30, 0.4)',
             }}
           >
-            <div className="leading-tight">
-              <div className="text-[15px] font-extrabold tracking-wide">LOG IN</div>
-              <div className="text-[10px] font-semibold tracking-wider opacity-90 mt-0.5">
-                ACCESS ACCOUNT
+            {isLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin text-white" />
+            ) : (
+              <div className="leading-tight">
+                <div className="text-[15px] font-extrabold tracking-wide">LOG IN</div>
+                <div className="text-[10px] font-semibold tracking-wider opacity-90 mt-0.5">
+                  ACCESS ACCOUNT
+                </div>
               </div>
-            </div>
+            )}
           </button>
         </form>
 

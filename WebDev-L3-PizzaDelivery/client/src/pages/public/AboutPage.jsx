@@ -40,10 +40,7 @@ function AboutPage() {
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
 
-      {/* Hero */}
       <section className="relative isolate  overflow-hidden text-white">
-
-        {/* Background image */}
         <div
           className="absolute inset-0 -z-20 bg-cover bg-center"
           style={{

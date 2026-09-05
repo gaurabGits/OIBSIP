@@ -1,21 +1,46 @@
 // ForgotPasswordPage.jsx
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 
 function ForgotPasswordPage() {
   const [formData, setFormData] = useState({
     email: '',
   });
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      newErrors.email = 'Enter a valid email';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Forgot Password Submitted:', formData);
-    setSubmitted(true);
+    if (!validate()) return;
+
+    setIsLoading(true);
+    try {
+      // Replace this with your real reset-link call
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      console.log('Forgot Password Submitted:', formData);
+      setSubmitted(true);
+    } catch (err) {
+      setErrors({ form: 'Something went wrong. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -47,36 +72,52 @@ function ForgotPasswordPage() {
 
         {!submitted ? (
           /* Form */
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          <form className="space-y-3" onSubmit={handleSubmit} noValidate>
             <div>
-              <label className="block text-xs font-bold tracking-widest text-[#9a9a9a] mb-2 uppercase">
+              <label className="block text-xs font-bold tracking-widest text-[#9a9a9a] mb-1.5 uppercase">
                 Email
               </label>
               <input
                 name="email"
                 type="email"
-                required
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-5 py-3 rounded-full border-2 border-[#E8641F] bg-white text-[#1a1a1a] placeholder-[#b0b0b0] focus:outline-none focus:ring-2 focus:ring-[#E8641F]/30 transition"
+                disabled={isLoading}
+                className={`w-full px-5 py-3 rounded-full border-2 bg-white text-[#1a1a1a] placeholder-[#b0b0b0] focus:outline-none focus:ring-2 transition disabled:opacity-60 disabled:cursor-not-allowed ${
+                  errors.email
+                    ? 'border-red-500 focus:ring-red-500/30'
+                    : 'border-[#E8641F] focus:ring-[#E8641F]/30'
+                }`}
                 placeholder="splicehouse@example.com"
               />
+              <p className="text-xs text-red-500 h-4 mt-1 px-2 leading-4">
+                {errors.email}
+              </p>
             </div>
+
+            {errors.form && (
+              <p className="text-xs text-red-500 text-center">{errors.form}</p>
+            )}
 
             <button
               type="submit"
-              className="w-full py-4 cursor-pointer rounded-full text-white shadow-lg transition transform hover:scale-[1.02] active:scale-[0.99]"
+              disabled={isLoading}
+              className="w-full mt-1 py-4 cursor-pointer rounded-full text-white shadow-lg transition transform hover:scale-[1.02] active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center"
               style={{
                 background: 'linear-gradient(90deg, #F0631E 0%, #F7A11E 100%)',
                 boxShadow: '0 10px 22px rgba(240, 99, 30, 0.4)',
               }}
             >
-              <div className="leading-tight">
-                <div className="text-[15px] font-extrabold tracking-wide">SEND</div>
-                <div className="text-[10px] font-semibold tracking-wider opacity-90 mt-0.5">
-                  RESET LINK
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin text-white" />
+              ) : (
+                <div className="leading-tight">
+                  <div className="text-[15px] font-extrabold tracking-wide">SEND</div>
+                  <div className="text-[10px] font-semibold tracking-wider opacity-90 mt-0.5">
+                    RESET LINK
+                  </div>
                 </div>
-              </div>
+              )}
             </button>
           </form>
         ) : (
@@ -94,7 +135,10 @@ function ForgotPasswordPage() {
             </p>
             <button
               type="button"
-              onClick={() => setSubmitted(false)}
+              onClick={() => {
+                setSubmitted(false);
+                setErrors({});
+              }}
               className="text-sm font-semibold text-[#E8641F] hover:text-[#c94a1f] transition"
             >
               Try another email
