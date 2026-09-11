@@ -4,6 +4,7 @@ dotenv.config();
 const app = require("./app");
 const connectDB = require("./config/db");
 const paymentRoutes = require("./routes/paymentRouters");
+const startLowStrockJob = require("./jobs/lowStockJob");
 
 app.use("/api/payment", paymentRoutes);
 
@@ -14,3 +15,5 @@ connectDB();
 app.listen(PORT, ()=>{
     console.log(`Server running on the ${PORT} port`); 
 });
+
+startLowStrockJob();
