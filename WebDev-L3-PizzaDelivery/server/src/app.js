@@ -19,6 +19,17 @@ app.get("/", (req, res) => {
     });
 });
 
+app.get("/reset-password", (req, res) => {
+    const token = req.query.token;
+
+    if (!token) {
+        return res.redirect(`${process.env.CLIENT_URL || "http://localhost:5173"}/login/forgot-password`);
+    }
+
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    return res.redirect(`${clientUrl}/reset-password?token=${encodeURIComponent(token)}`);
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/pizza", pizzaRoutes);
 app.use("/api/admin", adminRoutes);
