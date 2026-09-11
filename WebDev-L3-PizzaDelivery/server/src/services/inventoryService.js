@@ -24,7 +24,7 @@ const deductInventory = async (order) => {
           $inc: { stock: -1 },
         },
         {
-          new: true,
+          returnDocument: "after",
           session,
         }
       );
