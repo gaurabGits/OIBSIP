@@ -223,6 +223,12 @@ const esewaFailure = async (req, res) => {
 
     const paymentData = JSON.parse(decodedData);
 
+    if (!verifySignature(paymentData) || paymentData.product_code !== ESEWA_PRODUCT_CODE) {
+      return res.status(400).json({
+        message: "Invalid eSewa payment failure signature",
+      });
+    }
+
     const order = await Order.findOne({
       transactionUuid:
         paymentData.transaction_uuid,

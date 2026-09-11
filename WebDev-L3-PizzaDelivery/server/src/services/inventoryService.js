@@ -47,6 +47,35 @@ const deductInventory = async (order) => {
   }
 };
 
+const restoreInventory = async (order) => {
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    const inventoryIds = [
+      order.pizza.base,
+      order.pizza.sauce,
+      order.pizza.cheese,
+      ...order.pizza.vegetables,
+    ];
+
+    await Inventory.updateMany(
+      { _id: { $in: inventoryIds } },
+      { $inc: { stock: 1 } },
+      { session }
+    );
+
+    await session.commitTransaction();
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
+
 module.exports = {
   deductInventory,
+  restoreInventory,
 };

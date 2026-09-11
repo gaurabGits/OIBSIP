@@ -1,6 +1,6 @@
 const Order = require("../models/order");
 const Inventory = require("../models/inventory");
-const { deductInventory } = require("../services/inventoryService");
+const { deductInventory, restoreInventory } = require("../services/inventoryService");
 
 const createOrder = async (req, res) => {
   try {
@@ -29,7 +29,7 @@ const createOrder = async (req, res) => {
       });
     }
 
-    if (!["esewa", "cash", "razorpay"].includes(normalizedPaymentMethod)) {
+    if (!["esewa", "cash"].includes(normalizedPaymentMethod)) {
       return res.status(400).json({
         message: "Invalid payment method",
       });
@@ -112,6 +112,9 @@ const createOrder = async (req, res) => {
         await order.save();
       } catch (error) {
         // If stock deduction fails, remove the order
+        if (order.stockDeducted) {
+          await restoreInventory(order);
+        }
         await Order.findByIdAndDelete(order._id);
 
         return res.status(400).json({
@@ -207,20 +210,21 @@ const updateOrderStatus = async (req, res) => {
             });
         }
 
-        const order = await Order.findByIdAndUpdate(
-            req.params.id,
-            { status },
-            {
-              returnDocument: "after",
-                runValidators: true,
-            }
-        );
+        const order = await Order.findById(req.params.id);
 
         if (!order) {
             return res.status(404).json({
                 message: "Order not found",
             });
         }
+
+        if (status === "Cancelled" && order.status !== "Cancelled" && order.stockDeducted) {
+          await restoreInventory(order);
+          order.stockDeducted = false;
+        }
+
+        order.status = status;
+        await order.save();
 
         res.status(200).json({
             message: "Order status updated successfully",

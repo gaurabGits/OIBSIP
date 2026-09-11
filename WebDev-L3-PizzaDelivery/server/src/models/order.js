@@ -55,7 +55,7 @@ const orderSchema = new mongoose.Schema(
       
         paymentMethod: {
             type: String,
-            enum: ["esewa", "razorpay", "cash"],
+            enum: ["esewa", "cash"],
             required: true,
         },
         
