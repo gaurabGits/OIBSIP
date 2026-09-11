@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import useAuth from '../../hooks/useAuth';
 
+const MIN_AUTH_LOADING_MS = 500;
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 function LoginPage() {
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [show, setShow] = useState(false);
@@ -15,6 +19,18 @@ function LoginPage() {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const successMessage = location.state?.message;
+
+  useEffect(() => {
+    if (successMessage) {
+      toast.success(successMessage, { id: 'auth-success-message' });
+    }
+  }, [successMessage]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -42,17 +58,33 @@ function LoginPage() {
 
     setIsLoading(true);
     try {
-      await login({
-        email: formData.emailOrPhone.trim(),
-        password: formData.password,
-      });
+      await Promise.all([
+        login({
+          email: formData.emailOrPhone.trim().toLowerCase(),
+          password: formData.password,
+        }),
+        wait(MIN_AUTH_LOADING_MS),
+      ]);
 
-      const redirectTo = location.state?.from?.pathname || '/menu';
+      toast.success('Logged in successfully');
+
+      const redirectTo = location.state?.from?.pathname || '/dashboard';
       navigate(redirectTo, { replace: true });
     } catch (err) {
+      const message = err.response?.data?.message || err.message || 'Login failed. Please try again.';
+
+      if (err.response?.status === 403 && message === 'Please verify your email before logging in') {
+        const email = formData.emailOrPhone.trim().toLowerCase();
+        localStorage.setItem('pendingVerificationEmail', email);
+        toast(message, { icon: '✉️' });
+        navigate('/verify-email', { replace: true, state: { email } });
+        return;
+      }
+
       setErrors({
-        form: err.response?.data?.message || err.message || 'Login failed. Please try again.',
+        form: message,
       });
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -71,20 +103,12 @@ function LoginPage() {
     >
       {/* Card */}
       <div className="relative z-10 w-full max-w-md rounded-3xl border border-[#F0E9DD] bg-white p-6 shadow-xl sm:p-10">
-
-        {/* Header */}
         <div className="flex items-center justify-between mb-6 gap-3">
           <div className="min-w-0">
             <h1 className="text-[24px] font-extrabold leading-none tracking-tight text-[#1a1a1a] sm:text-[26px]">LOG IN</h1>
             <p className="text-[13px] font-bold text-[#4a4a4a] mt-1.5 tracking-wide whitespace-nowrap">WELCOME BACK!</p>
           </div>
         </div>
-
-        {successMessage && (
-          <p className="mb-4 rounded-2xl bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
-            {successMessage}
-          </p>
-        )}
 
         {/* Form */}
         <form className="space-y-3" onSubmit={handleSubmit} noValidate>
@@ -141,15 +165,11 @@ function LoginPage() {
                 />
                 <span className="text-sm text-[#1a1a1a]">Show Password</span>
               </label>
-              <Link to="/login/ForgotPassword" className="text-sm font-bold text-[#E8641F] hover:text-[#c94a1f]">
+              <Link to="/login/forgot-password" className="text-sm font-bold text-[#E8641F] hover:text-[#c94a1f]">
                 Forgot Password?
               </Link>
             </div>
           </div>
-
-          {errors.form && (
-            <p className="text-xs text-red-500 text-center">{errors.form}</p>
-          )}
 
           <button
             type="submit"
@@ -180,6 +200,12 @@ function LoginPage() {
             Sign Up
           </Link>
         </p>
+        <Link
+          to="/verify-email"
+          className="mt-3 block text-center text-sm font-bold text-[#E8641F] hover:text-[#c94a1f]"
+        >
+          Need to verify your email?
+        </Link>
       </div>
     </div>
   );

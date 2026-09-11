@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MoveLeft, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import useAuth from '../../hooks/useAuth';
 
+const MIN_AUTH_LOADING_MS = 500;
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 function SignUpPage() {
-  const { register } = useAuth();
+  const { register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [show, setShow] = useState(false);
@@ -18,8 +22,19 @@ function SignUpPage() {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setErrors((currentErrors) => {
+      const nextErrors = { ...currentErrors };
+      delete nextErrors[e.target.name];
+      return nextErrors;
+    });
   };
 
   const handleBack = (e) => {
@@ -32,6 +47,8 @@ function SignUpPage() {
     const newErrors = {};
     if (!formData.fullName.trim()) {
       newErrors.fullName = 'Full name is required';
+    } else if (formData.fullName.trim().length < 2) {
+      newErrors.fullName = 'Enter your full name';
     }
     if (!formData.phone.trim()) {
       newErrors.phone = 'Phone number is required';
@@ -49,13 +66,15 @@ function SignUpPage() {
     const newErrors = {};
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+    } else if (!/^\S+@\S+\.\S+$/.test(formData.email.trim())) {
       newErrors.email = 'Enter a valid email';
     }
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    } else if (!/[A-Za-z]/.test(formData.password) || !/\d/.test(formData.password)) {
+      newErrors.password = 'Use letters and numbers';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -74,24 +93,32 @@ function SignUpPage() {
 
     setIsLoading(true);
     try {
-      await register({
-        fname: formData.fullName.trim(),
-        phone: formData.phone.trim(),
-        email: formData.email.trim(),
-        password: formData.password,
-      });
+      await Promise.all([
+        register({
+          fname: formData.fullName.trim(),
+          phone: formData.phone.trim(),
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password,
+        }),
+        wait(MIN_AUTH_LOADING_MS),
+      ]);
 
-      navigate('/login', {
+      const email = formData.email.trim().toLowerCase();
+      localStorage.setItem('pendingVerificationEmail', email);
+      toast.success('Verification code sent. Check your email.');
+
+      navigate('/verify-email', {
         replace: true,
-        state: {
-          message: 'Account created. Please verify your email before logging in.',
-        },
+        state: { email },
       });
     } catch (err) {
-      setErrors((prev) => ({
-        ...prev,
-        form: err.response?.data?.message || err.message || 'Sign up failed. Please try again.',
-      }));
+      const message = err.response?.data?.message || err.message || 'Sign up failed. Please try again.';
+
+        setErrors({});
+        toast.error(message, {
+          duration: 5000,
+          icon: '!',
+        });
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +126,7 @@ function SignUpPage() {
 
   return (
     <div
-      className="relative flex min-h-svh w-full items-center justify-center overflow-x-hidden px-4 pt-[92px] pb-6 sm:pt-[96px] sm:pb-8"
+      className="relative flex min-h-svh w-full items-center justify-center overflow-x-hidden px-4 pt-23 pb-6 sm:pt-24 sm:pb-8"
       style={{
         background: `
           radial-gradient(ellipse 600px 400px at 70% 20%, rgba(227,162,59,0.06), transparent 50%),
@@ -110,7 +137,6 @@ function SignUpPage() {
     >
       {/* Card */}
       <div className="relative z-10 w-full max-w-md rounded-3xl border border-[#F0E9DD] bg-white p-6 shadow-xl sm:p-10">
-        {/* Header */}
         <div className="flex items-center justify-between mb-6 gap-3">
           <div className="min-w-0">
             <h1 className="text-[24px] font-extrabold leading-none tracking-tight text-[#1a1a1a] sm:text-[26px]">SIGN UP</h1>
@@ -261,10 +287,6 @@ function SignUpPage() {
                   <span className="text-sm text-[#1a1a1a]">Show Password</span>
                 </div>
               </div>
-
-              {errors.form && (
-                <p className="text-xs text-red-500 text-center">{errors.form}</p>
-              )}
 
               <div className="mt-6 flex items-center gap-3 sm:gap-4">
                 {/* Circle Back Button */}

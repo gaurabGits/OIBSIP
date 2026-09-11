@@ -1,6 +1,9 @@
 // ResetPasswordPage.jsx
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { resetPassword } from '../../features/authService';
 
 function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -10,19 +13,44 @@ function ResetPasswordPage() {
     confirmPassword: '',
   });
   const [submitted, setSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
+    const token = new URLSearchParams(location.search).get('token');
+    if (!token) {
+      setError('This reset link is invalid or expired.');
+      toast.error('This reset link is invalid or expired.');
       return;
     }
-    console.log('Password Reset Submitted:', formData);
-    setSubmitted(true);
+    if (formData.password.length < 8 || !/[A-Za-z]/.test(formData.password) || !/\d/.test(formData.password)) {
+      setError('Use at least 8 characters with letters and numbers.');
+      return;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    setError('');
+    setIsLoading(true);
+    try {
+      const data = await resetPassword(token, formData.password);
+      setSubmitted(true);
+      toast.success(data.message || 'Password reset successfully.');
+    } catch (err) {
+      const message = err.response?.data?.message || 'Unable to reset password. Please request a new link.';
+      setError(message);
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (submitted) {
@@ -110,6 +138,7 @@ function ResetPasswordPage() {
               minLength={8}
               value={formData.password}
               onChange={handleChange}
+              disabled={isLoading}
               className="w-full px-5 py-3 rounded-full border-2 border-[#E8641F] bg-white text-[#1a1a1a] placeholder-[#b0b0b0] focus:outline-none focus:ring-2 focus:ring-[#E8641F]/30 transition"
               placeholder="••••••••"
             />
@@ -136,6 +165,7 @@ function ResetPasswordPage() {
               minLength={8}
               value={formData.confirmPassword}
               onChange={handleChange}
+              disabled={isLoading}
               className="w-full px-5 py-3 rounded-full border-2 border-[#E8641F] bg-white text-[#1a1a1a] placeholder-[#b0b0b0] focus:outline-none focus:ring-2 focus:ring-[#E8641F]/30 transition"
               placeholder="••••••••"
             />
@@ -176,21 +206,23 @@ function ResetPasswordPage() {
             </div>
           )}
 
-          {/* Submit Button */}
+          {error && <p className="text-center text-sm text-red-500">{error}</p>}
+
           <button
             type="submit"
-            className="w-full py-4 cursor-pointer rounded-full text-white shadow-lg transition transform hover:scale-[1.02] active:scale-[0.99]"
+            disabled={isLoading}
+            className="w-full py-4 cursor-pointer rounded-full text-white shadow-lg transition transform hover:scale-[1.02] active:scale-[0.99] disabled:opacity-70"
             style={{
               background: 'linear-gradient(90deg, #F0631E 0%, #F7A11E 100%)',
               boxShadow: '0 10px 22px rgba(240, 99, 30, 0.4)',
             }}
           >
-            <div className="leading-tight">
+            {isLoading ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : <div className="leading-tight">
               <div className="text-[15px] font-extrabold tracking-wide">RESET</div>
               <div className="text-[10px] font-semibold tracking-wider opacity-90 mt-0.5">
                 SET NEW PASSWORD
               </div>
-            </div>
+            </div>}
           </button>
         </form>
 

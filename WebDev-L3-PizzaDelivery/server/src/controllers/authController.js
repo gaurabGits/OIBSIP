@@ -13,6 +13,7 @@ const {
 const emailRegex = /^\S+@\S+\.\S+$/;
 const phoneRegex = /^9\d{9}$/;
 
+
 const registerUser = async (req, res) => {
     try{
         const fname = req.body.fname?.trim();
@@ -65,7 +66,7 @@ const registerUser = async (req, res) => {
             });
         }
 
-        const verificationToken = crypto.randomBytes(32).toString("hex");
+        const verificationCode = crypto.randomInt(100000, 1000000).toString();
         const verificationExpires = Date.now() + 15 * 60 * 1000;
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -75,12 +76,12 @@ const registerUser = async (req, res) => {
             phone,
             email,
             password: hashedPassword,
-            emailVerificationToken: verificationToken,
+            emailVerificationCode: verificationCode,
             emailVerificationExpires: verificationExpires,
         });
 
         try {
-            await sendVerificationEmail(user.email, verificationToken);
+            await sendVerificationEmail(user.email, verificationCode);
         } catch (emailError) {
              console.error("Email send failed:", emailError); 
             await User.findByIdAndDelete(user._id);
@@ -118,39 +119,82 @@ const registerUser = async (req, res) => {
 
 const verifyEmail = async (req, res) => {
     try {
-        const { token } = req.query;
+        const email = req.body.email?.trim().toLowerCase();
+        const code = req.body.code?.trim();
 
-        if (!token) {
+        if (!email || !emailRegex.test(email) || !/^\d{6}$/.test(code || "")) {
             return res.status(400).json({
-                message: "Verification token is required",
+                message: "Enter the valid six-digit verification code",
             });
         }
 
         const user = await User.findOne({
-            emailVerificationToken: token,
+            email,
+            emailVerificationCode: code,
             emailVerificationExpires: { $gt: Date.now() },
-        }).select("+emailVerificationToken +emailVerificationExpires");
+        }).select("+emailVerificationCode +emailVerificationExpires");
 
         if (!user) {
             return res.status(400).json({
-                message: "Invalid or expired verification token",
+                message: "Invalid or expired verification code",
             });
         }
 
         user.isEmailVerified = true;
-        user.emailVerificationToken = undefined;
+        user.emailVerificationCode = undefined;
         user.emailVerificationExpires = undefined;
 
         await user.save();
 
+        const sessionToken = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
         res.status(200).json({
             message: "Email verified successfully",
+            token: sessionToken,
+            user: {
+                id: user._id,
+                fname: user.fname,
+                phone: user.phone,
+                email: user.email,
+                role: user.role,
+            },
         });
     } catch (error) {
         res.status(500).json({
             message: "Server error",
             error: error.message,
         });
+    }
+};
+
+const resendVerificationEmail = async (req, res) => {
+    try {
+        const email = req.body.email?.trim().toLowerCase();
+
+        if (!email || !emailRegex.test(email)) {
+            return res.status(400).json({ message: "Enter a valid email" });
+        }
+
+        const user = await User.findOne({ email });
+        if (!user || user.isEmailVerified) {
+            return res.status(200).json({
+                message: "If the account needs verification, a new email has been sent",
+            });
+        }
+
+        const verificationCode = crypto.randomInt(100000, 1000000).toString();
+        user.emailVerificationCode = verificationCode;
+        user.emailVerificationExpires = Date.now() + 15 * 60 * 1000;
+        await user.save();
+        await sendVerificationEmail(user.email, verificationCode);
+
+        return res.status(200).json({ message: "Verification email sent" });
+    } catch (error) {
+        return res.status(500).json({ message: "Unable to send verification email" });
     }
 };
 
@@ -197,6 +241,13 @@ const loginUser = async (req, res) => {
                 message: "Invalid email or password",
             });
         }
+
+        if (user.role === "admin") {
+        return res.status(403).json({
+            message: "Access denied. Use the designated admin login portal.",
+        });
+        }
+
 
         const token = jwt.sign(
             {
@@ -259,7 +310,7 @@ const getMe = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
     try {
-        const { email } = req.body;
+        const email = req.body.email?.trim().toLowerCase();
 
         if (!email) {
             return res.status(400).json({
@@ -315,6 +366,12 @@ const resetPassword = async (req, res) => {
             });
         }
 
+        if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+            return res.status(400).json({
+                message: "Password must be at least 8 characters and include letters and numbers",
+            });
+        }
+
         const user = await User.findOne({
             passwordResetToken: token,
             passwordResetExpires: { $gt: Date.now() },
@@ -350,6 +407,7 @@ const resetPassword = async (req, res) => {
 module.exports = { 
     registerUser, 
     verifyEmail, 
+    resendVerificationEmail,
     loginUser, 
     forgotPassword,
     resetPassword,

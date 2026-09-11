@@ -1,7 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import useAuth from '../../hooks/useAuth';
 
 function LoginPage() {
+    const { adminLogin, user } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
 
     const [formData, setFormData] = useState({
         emailOrPhone: '',
@@ -9,6 +15,10 @@ function LoginPage() {
     });
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (user?.role === 'admin') navigate('/admin/dashboard', { replace: true });
+    }, [navigate, user]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -36,11 +46,16 @@ function LoginPage() {
 
         setIsLoading(true);
         try {
-            // Replace this with your real admin login call
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-            console.log('Login Submitted:', formData);
+            await adminLogin({
+                email: formData.emailOrPhone.trim().toLowerCase(),
+                password: formData.password,
+            });
+            toast.success('Welcome to the admin console');
+            navigate(location.state?.from?.pathname || '/admin/dashboard', { replace: true });
         } catch (err) {
-            setErrors({ form: 'Invalid credentials. Please try again.' });
+            const message = err.response?.data?.message || 'Invalid credentials. Please try again.';
+            setErrors({ form: message });
+            toast.error(message);
         } finally {
             setIsLoading(false);
         }
@@ -114,10 +129,6 @@ function LoginPage() {
                             {errors.password}
                         </p>
                     </div>
-
-                    {errors.form && (
-                        <p className="text-xs text-red-500 text-center">{errors.form}</p>
-                    )}
 
                     <button
                         type="submit"

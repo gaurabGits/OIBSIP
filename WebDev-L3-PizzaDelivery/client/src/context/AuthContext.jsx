@@ -1,22 +1,33 @@
 import { createContext, useEffect, useState } from "react";
+
 import {
   loginUser,
+  loginAdmin,
   registerUser,
   getCurrentUser,
   logoutUser,
 } from "../features/authService";
 
-
-// Allow to share data accross many components
 export const AuthContext = createContext();
 
+const getStoredUser = () => {
+  try {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  } catch {
+    localStorage.removeItem("user");
+    return null;
+  }
+};
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [user, setUser] = useState(getStoredUser);
+  const [token, setToken] = useState(
+    localStorage.getItem("token")
+  );
   const [loading, setLoading] = useState(true);
 
-
-  // Check user when application starts
+  // Check authentication when application starts
   useEffect(() => {
     const checkAuth = async () => {
       const storedToken = localStorage.getItem("token");
@@ -29,11 +40,14 @@ export const AuthProvider = ({ children }) => {
       try {
         const data = await getCurrentUser();
 
-        const currentUser = data.user || data;
+        setUser(data.user);
 
-        setUser(currentUser);
+        localStorage.setItem(
+          "user",
+          JSON.stringify(data.user)
+        );
       } catch (error) {
-        console.error("Authentication failed:", error);
+        console.error("Authentication check failed:", error);
 
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -48,27 +62,41 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  
   // Login
   const login = async (credentials) => {
     const data = await loginUser(credentials);
 
     const newToken = data.token;
+    const loggedInUser = data.user;
 
-    if (!newToken) {
-      throw new Error("Token was not returned by server");
+    if (!newToken || !loggedInUser) {
+      throw new Error("Login response was incomplete");
     }
 
     localStorage.setItem("token", newToken);
+    localStorage.setItem(
+      "user",
+      JSON.stringify(loggedInUser)
+    );
 
-    const loggedInUser = data.user || data.data?.user;
+    setUser(loggedInUser);
+    setToken(newToken);
 
-    if (loggedInUser) {
-      localStorage.setItem("user", JSON.stringify(loggedInUser));
-      setUser(loggedInUser);
+    return data;
+  };
+
+  const adminLogin = async (credentials) => {
+    const data = await loginAdmin(credentials);
+    const loggedInUser = data.admin;
+
+    if (!data.token || !loggedInUser) {
+      throw new Error("Admin login response was incomplete");
     }
 
-    setToken(newToken);
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(loggedInUser));
+    setUser(loggedInUser);
+    setToken(data.token);
 
     return data;
   };
@@ -78,6 +106,17 @@ export const AuthProvider = ({ children }) => {
     const data = await registerUser(userData);
 
     return data;
+  };
+
+  const completeVerification = (data) => {
+    if (!data?.token || !data?.user) {
+      throw new Error("Verification response was incomplete");
+    }
+
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+    setToken(data.token);
+    setUser(data.user);
   };
 
   // Logout
@@ -92,9 +131,13 @@ export const AuthProvider = ({ children }) => {
     user,
     token,
     loading,
+
     isAuthenticated: !!token,
+
     login,
+    adminLogin,
     register,
+    completeVerification,
     logout,
   };
 

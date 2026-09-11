@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { forgotPassword } from '../../features/authService';
 
 function ForgotPasswordPage() {
   const [formData, setFormData] = useState({
@@ -32,12 +34,13 @@ function ForgotPasswordPage() {
 
     setIsLoading(true);
     try {
-      // Replace this with your real reset-link call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log('Forgot Password Submitted:', formData);
+      const data = await forgotPassword(formData.email.trim().toLowerCase());
       setSubmitted(true);
+      toast.success(data.message || 'Reset link sent. Check your inbox.');
     } catch (err) {
-      setErrors({ form: 'Something went wrong. Please try again.' });
+      const message = err.response?.data?.message || 'Something went wrong. Please try again.';
+      setErrors({ form: message });
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

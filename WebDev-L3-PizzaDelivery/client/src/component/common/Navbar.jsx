@@ -1,8 +1,13 @@
-﻿import { useState, useRef, useEffect } from 'react'
-import { Menu as MenuIcon, X, ShoppingCart, User, LogOut, ClipboardList, ChevronDown } from 'lucide-react'
-import { Link, useLocation } from 'react-router-dom'
+import { useState, useRef, useEffect } from 'react'
+import { Menu as MenuIcon, X, ShoppingCart, User, LogOut, ClipboardList, ChevronDown, Loader2 } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import SystemLogo from '../../assets/icons/SystemLogo'
 import { getHashTarget, scrollToSection } from '../../utils/scrollToSection'
+import useAuth from '../../hooks/useAuth'
+import toast from 'react-hot-toast'
+
+const MIN_AUTH_LOADING_MS = 500
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 const navLinks = [
   { label: 'Home', href: '/#hero' },
@@ -10,22 +15,24 @@ const navLinks = [
   { label: 'About Us', href: '/about' },
 ]
 
-const demoUser = {
-  name: 'Alex Rivera',
-  email: 'alex@example.com',
-  avatarUrl: '',
-}
-
 function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [isVerified, setIsVerified] = useState(false)
   const [cartCount] = useState(1)
   const [profileOpen, setProfileOpen] = useState(false)
   const [hidden, setHidden] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const profileRef = useRef(null)
   const lastScrollY = useRef(0)
   const location = useLocation()
+  const navigate = useNavigate()
+  const { user, isAuthenticated, logout } = useAuth()
+
+  const currentUser = {
+    name: user?.fname || user?.name || 'User',
+    email: user?.email || '',
+    avatarUrl: user?.avatarUrl || '',
+  }
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -82,7 +89,7 @@ function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const initials = demoUser.name
+  const initials = currentUser.name
     .split(' ')
     .map((name) => name[0])
     .join('')
@@ -112,10 +119,15 @@ function Navbar() {
     }
   }
 
-  const handleLogout = () => {
-    setIsVerified(false)
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    await wait(MIN_AUTH_LOADING_MS)
+    logout()
+    toast.success('Logged out successfully')
     setProfileOpen(false)
     setMobileOpen(false)
+    setIsLoggingOut(false)
+    navigate('/login', { replace: true })
   }
 
   return (
@@ -148,7 +160,7 @@ function Navbar() {
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
-            {isVerified ? (
+            {isAuthenticated ? (
               <div ref={profileRef} className="relative hidden lg:block">
                 <button
                   type="button"
@@ -157,13 +169,13 @@ function Navbar() {
                   aria-expanded={profileOpen}
                   className="flex items-center gap-2 rounded-full bg-white/10 py-1.5 pl-1.5 pr-3 transition-colors hover:bg-white/20"
                 >
-                  {demoUser.avatarUrl ? (
-                    <img src={demoUser.avatarUrl} alt={demoUser.name} className="h-8 w-8 rounded-full object-cover" />
+                  {currentUser.avatarUrl ? (
+                    <img src={currentUser.avatarUrl} alt={currentUser.name} className="h-8 w-8 rounded-full object-cover" />
                   ) : (
                     <span className="grid h-8 w-8 place-items-center rounded-full bg-amber-400 text-sm font-bold text-stone-900">{initials}</span>
                   )}
 
-                  <span className="max-w-[110px] truncate text-sm font-semibold text-[#fffaf2]">{demoUser.name.split(' ')[0]}</span>
+                  <span className="max-w-[110px] truncate text-sm font-semibold text-[#fffaf2]">{currentUser.name.split(' ')[0]}</span>
 
                   <ChevronDown className={`h-4 w-4 text-[#fffaf2] transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -171,15 +183,15 @@ function Navbar() {
                 {profileOpen && (
                   <div role="menu" className="absolute right-0 top-[calc(100%+10px)] w-64 overflow-hidden rounded-2xl bg-[#fffaf2] shadow-2xl ring-1 ring-black/5">
                     <div className="flex items-center gap-3 border-b border-stone-200 bg-stone-50 px-4 py-4">
-                      {demoUser.avatarUrl ? (
-                        <img src={demoUser.avatarUrl} alt={demoUser.name} className="h-11 w-11 rounded-full object-cover" />
+                      {currentUser.avatarUrl ? (
+                        <img src={currentUser.avatarUrl} alt={currentUser.name} className="h-11 w-11 rounded-full object-cover" />
                       ) : (
                         <span className="grid h-11 w-11 place-items-center rounded-full bg-amber-400 text-base font-bold text-stone-900">{initials}</span>
                       )}
 
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-stone-800">{demoUser.name}</p>
-                        <p className="truncate text-xs text-stone-500">{demoUser.email}</p>
+                        <p className="truncate text-sm font-bold text-stone-800">{currentUser.name}</p>
+                        <p className="truncate text-xs text-stone-500">{currentUser.email}</p>
                       </div>
                     </div>
 
@@ -194,9 +206,9 @@ function Navbar() {
                         My Orders
                       </Link>
 
-                      <button role="menuitem" type="button" onClick={handleLogout} className="flex items-center gap-2.5 px-4 py-2.5 text-left text-sm font-medium text-[#C1442D] transition-colors hover:bg-red-50">
-                        <LogOut className="h-4 w-4" />
-                        Log Out
+                      <button role="menuitem" type="button" onClick={handleLogout} disabled={isLoggingOut} className="flex items-center gap-2.5 px-4 py-2.5 text-left text-sm font-medium text-[#C1442D] transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-70">
+                        {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+                        {isLoggingOut ? 'Logging out...' : 'Log Out'}
                       </button>
                     </div>
                   </div>
@@ -255,18 +267,18 @@ function Navbar() {
                   </Link>
                 ))}
 
-                {isVerified ? (
+                {isAuthenticated ? (
                   <>
                     <div className="mt-4 flex items-center gap-3 rounded-xl bg-white/10 px-3 py-3">
-                      {demoUser.avatarUrl ? (
-                        <img src={demoUser.avatarUrl} alt={demoUser.name} className="h-10 w-10 rounded-full object-cover" />
+                      {currentUser.avatarUrl ? (
+                        <img src={currentUser.avatarUrl} alt={currentUser.name} className="h-10 w-10 rounded-full object-cover" />
                       ) : (
                         <span className="grid h-10 w-10 place-items-center rounded-full bg-amber-400 text-sm font-bold text-stone-900">{initials}</span>
                       )}
 
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-[#fffaf2]">{demoUser.name}</p>
-                        <p className="truncate text-xs text-white/70">{demoUser.email}</p>
+                        <p className="truncate text-sm font-bold text-[#fffaf2]">{currentUser.name}</p>
+                        <p className="truncate text-xs text-white/70">{currentUser.email}</p>
                       </div>
                     </div>
 
@@ -275,9 +287,9 @@ function Navbar() {
                       Cart {cartCount > 0 && `(${cartCount})`}
                     </Link>
 
-                    <button type="button" onClick={handleLogout} className="mt-2 flex items-center justify-center gap-2 rounded-full border border-white/30 px-5 py-3 font-bold text-[#fffaf2] transition hover:bg-white/10">
-                      <LogOut className="h-4 w-4" />
-                      Log Out
+                    <button type="button" onClick={handleLogout} disabled={isLoggingOut} className="mt-2 flex items-center justify-center gap-2 rounded-full border border-white/30 px-5 py-3 font-bold text-[#fffaf2] transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-70">
+                      {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+                      {isLoggingOut ? 'Logging out...' : 'Log Out'}
                     </button>
                   </>
                 ) : (

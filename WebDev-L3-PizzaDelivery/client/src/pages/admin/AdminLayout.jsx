@@ -13,6 +13,9 @@ import {
   Bell,
   CircleCheck,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import useAuth from "../../hooks/useAuth";
 
 
 const NAV_ITEMS = [
@@ -39,11 +42,13 @@ export function AdminLayout() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const adminUser = {
-    name: "Admin",
+    name: user?.fname || "Admin",
     role: "Administrator",
-    email: "admin@slicehouse.com",
+    email: user?.email || "admin@slicehouse.com",
     avatar:
       "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=100&auto=format&fit=crop&q=80",
   };
@@ -248,7 +253,11 @@ export function AdminLayout() {
                   {/* Logout */}
                   <div className="mt-1 border-t border-gray-100">
                     <button
-                      onClick={() => alert("Logging out...")}
+                      onClick={() => {
+                        logout();
+                        toast.success("Signed out successfully");
+                        navigate("/admin/login", { replace: true });
+                      }}
                       className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm font-semibold text-red-600 hover:bg-red-50"
                     >
                       <LogOut className="h-4 w-4" />
