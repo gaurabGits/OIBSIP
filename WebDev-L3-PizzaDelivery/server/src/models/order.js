@@ -70,6 +70,10 @@ const orderSchema = new mongoose.Schema(
             enum: ["Pending", "Paid", "Failed"],
             default: "Pending",
         },
+        stockDeducted: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         timestamps: true,

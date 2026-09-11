@@ -1,11 +1,12 @@
 const express = require("express");
-
 const {
     createEsewaPayment,
     esewaSuccess,
-    esewaFailure
+    esewaFailure,
+    
 } = require("../controllers/paymentController");
 const protect = require("../middleware/authMiddleware");
+
 
 const router = express.Router();
 

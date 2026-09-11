@@ -10,14 +10,43 @@ const {
  } = require("../services/emailService")
 
 
+const emailRegex = /^\S+@\S+\.\S+$/;
+const phoneRegex = /^9\d{9}$/;
 
 const registerUser = async (req, res) => {
     try{
-        const {fname, phone, email, password} = req.body;
+        const fname = req.body.fname?.trim();
+        const phone = req.body.phone?.trim();
+        const email = req.body.email?.trim().toLowerCase();
+        const { password } = req.body;
 
         if(!fname || !phone || !email || !password) {
             return res.status(400).json({
                 message: "All fields are required",
+            });
+        }
+
+        if (fname.length < 2) {
+            return res.status(400).json({
+                message: "Full name is too short",
+            });
+        }
+
+        if (!phoneRegex.test(phone)) {
+            return res.status(400).json({
+                message: "Enter a valid 10-digit phone number",
+            });
+        }
+
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                message: "Enter a valid email",
+            });
+        }
+
+        if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+            return res.status(400).json({
+                message: "Password must be at least 8 characters and include letters and numbers",
             });
         }
 
@@ -128,11 +157,18 @@ const verifyEmail = async (req, res) => {
 
 const loginUser = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const email = req.body.email?.trim().toLowerCase();
+        const { password } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({
                 message: "Email and password are required",
+            });
+        }
+
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                message: "Enter a valid email",
             });
         }
 
@@ -159,12 +195,6 @@ const loginUser = async (req, res) => {
         if (!isPasswordCorrect) {
             return res.status(401).json({
                 message: "Invalid email or password",
-            });
-        }
-
-        if (!user.isEmailVerified) {
-            return res.status(403).json({
-                message: "Please verify your email before logging in",
             });
         }
 
