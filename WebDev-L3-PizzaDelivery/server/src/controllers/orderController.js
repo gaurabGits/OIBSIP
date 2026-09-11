@@ -1,37 +1,41 @@
 const Order = require("../models/order");
 const Inventory = require("../models/inventory");
+const { deductInventory } = require("../services/inventoryService");
 
 const createOrder = async (req, res) => {
   try {
-    const { 
-        baseId, 
-        sauceId, 
-        cheeseId, 
-        vegetableIds = [],
-        paymentMethod,
-       } = req.body || {};
+    const {
+      baseId,
+      sauceId,
+      cheeseId,
+      vegetableIds = [],
+      paymentMethod,
+    } = req.body;
+    const userId = req.user?.id;
 
-    if (!req.user?.id) {
+    if (!userId) {
       return res.status(401).json({
         message: "Not authorized, user missing",
       });
     }
 
-    if(!paymentMethod || !["esewa", "razorpay", "cash"].includes(paymentMethod)) {
-      return res.status(400).json({
-        message: "Invalid payment method",
-      });
-    }
+    const normalizedPaymentMethod = String(paymentMethod || "")
+      .trim()
+      .toLowerCase();
 
-    // 1. Check required ingredients
     if (!baseId || !sauceId || !cheeseId) {
       return res.status(400).json({
         message: "Base, sauce and cheese are required",
       });
     }
 
+    if (!["esewa", "cash", "razorpay"].includes(normalizedPaymentMethod)) {
+      return res.status(400).json({
+        message: "Invalid payment method",
+      });
+    }
 
-    // 2. Find selected ingredients
+    // Get pizza price from inventory
     const base = await Inventory.findOne({
       _id: baseId,
       category: "base",
@@ -50,19 +54,17 @@ const createOrder = async (req, res) => {
       stock: { $gt: 0 },
     });
 
+    if (!base || !sauce || !cheese) {
+      return res.status(400).json({
+        message: "One or more selected ingredients are unavailable",
+      });
+    }
+
     const vegetables = await Inventory.find({
       _id: { $in: vegetableIds },
       category: "vegetable",
       stock: { $gt: 0 },
     });
-
-
-    // 3. Check availability
-    if (!base || !sauce || !cheese) {
-      return res.status(400).json({
-        message: "Selected base, sauce or cheese is unavailable",
-      });
-    }
 
     if (vegetables.length !== vegetableIds.length) {
       return res.status(400).json({
@@ -70,8 +72,6 @@ const createOrder = async (req, res) => {
       });
     }
 
-
-    // 4. Calculate total price from database
     const totalPrice =
       base.price +
       sauce.price +
@@ -80,34 +80,54 @@ const createOrder = async (req, res) => {
         return total + vegetable.price;
       }, 0);
 
-
-    // 5. Create order
+    // Create order first
     const order = await Order.create({
-      user:  req.user?.id, // id of currently logged in user
+      user: userId,
 
       pizza: {
         base: base._id,
         sauce: sauce._id,
         cheese: cheese._id,
-        vegetables: vegetables.map(
-          (vegetable) => vegetable._id
-        ),
+        vegetables: vegetables.map((vegetable) => vegetable._id),
       },
 
       totalPrice,
-      paymentMethod,
+
+      paymentMethod: normalizedPaymentMethod,
+
       status: "Order Received",
+
       paymentStatus: "Pending",
+
+      stockDeducted: false,
     });
 
+    // Cash payment
+    if (normalizedPaymentMethod === "cash") {
+      try {
+        await deductInventory(order);
 
-    // 7. Send response
+        order.stockDeducted = true;
+
+        await order.save();
+      } catch (error) {
+        // If stock deduction fails, remove the order
+        await Order.findByIdAndDelete(order._id);
+
+        return res.status(400).json({
+          message: "Unable to create order because stock is insufficient",
+          error: error.message,
+        });
+      }
+    }
+
     res.status(201).json({
       message: "Order created successfully",
       order,
     });
-
   } catch (error) {
+    console.error("Create order error:", error);
+
     res.status(500).json({
       message: "Server error",
       error: error.message,
@@ -214,10 +234,54 @@ const updateOrderStatus = async (req, res) => {
     }
 };
 
+const markCashPaymentPaid = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found",
+      });
+    }
+
+    if (order.paymentMethod !== "cash") {
+      return res.status(400).json({
+        message: "This order is not a Cash on Delivery order",
+      });
+    }
+
+    if (order.paymentStatus === "Paid") {
+      return res.status(400).json({
+        message: "Payment is already marked as paid",
+      });
+    }
+
+    order.paymentStatus = "Paid";
+
+    await order.save();
+
+    res.status(200).json({
+      message: "Cash payment marked as paid",
+      order,
+    });
+  } catch (error) {
+    console.error("Mark cash payment error:", error);
+
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+
 module.exports = {
   createOrder,
   getMyOrders,
   getAllOrders,
   updateOrderStatus,
+  markCashPaymentPaid,
 };
 

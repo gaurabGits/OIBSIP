@@ -1,28 +1,21 @@
-const mongoose = require("mongoose");
 const Order = require("../models/order");
-const Inventory = require("../models/inventory");
 const {
   ESEWA_PRODUCT_CODE,
   ESEWA_PAYMENT_URL,
   generateSignature,
   verifySignature,
 } = require("../config/esewa");
+const { deductInventory } = require("../services/inventoryService");
 
 
 const createEsewaPayment = async (req, res) => {
   try {
-    const { orderId } = req.body;
+    const { orderId } = req.body || {};
     const userId = req.user?.id || req.user?._id;
 
     if (!orderId) {
       return res.status(400).json({
         message: "Order ID is required",
-      });
-    }
-
-    if (!userId) {
-      return res.status(401).json({
-        message: "Not authorized, user missing",
       });
     }
 
@@ -37,63 +30,49 @@ const createEsewaPayment = async (req, res) => {
       });
     }
 
-    if ((order.paymentMethod || "").toLowerCase() !== "esewa") {
+    if (order.paymentMethod !== "esewa") {
       return res.status(400).json({
-        message: "This order is not using eSewa",
+        message: "This order is not an eSewa order",
       });
     }
 
     if (order.paymentStatus === "Paid") {
       return res.status(400).json({
-        message: "Order is already paid",
+        message: "Order payment is already complete",
       });
     }
 
-    const transactionUuid = `TXN-${Date.now()}`;
+    if (!order.transactionUuid) {
+      order.transactionUuid = `${order._id}-${Date.now()}`;
+      await order.save();
+    }
 
-    const signature = generateSignature(
-      order.totalPrice,
-      transactionUuid
-    );
+    const amount = Number(order.totalPrice).toFixed(2);
+    const signedFieldNames = "total_amount,transaction_uuid,product_code";
+    const callbackBaseUrl =
+      process.env.SERVER_URL || `${req.protocol}://${req.get("host")}`;
 
-    order.transactionUuid = transactionUuid;
-
-    await order.save();
-
-    res.status(200).json({
-      message: "eSewa payment created",
-
-      payment: {
-        amount: order.totalPrice,
-        tax_amount: 0,
-        total_amount: order.totalPrice,
-
-        transaction_uuid: transactionUuid,
-
+    return res.status(200).json({
+      paymentUrl: ESEWA_PAYMENT_URL,
+      formData: {
+        amount,
+        tax_amount: "0",
+        total_amount: amount,
+        transaction_uuid: order.transactionUuid,
         product_code: ESEWA_PRODUCT_CODE,
-
-        product_service_charge: 0,
-        product_delivery_charge: 0,
-
-        success_url:
-          "http://localhost:5000/api/payment/esewa/success",
-
-        failure_url:
-          "http://localhost:5000/api/payment/esewa/failure",
-
-        signed_field_names:
-          "total_amount,transaction_uuid,product_code",
-
-        signature,
-
-        payment_url: ESEWA_PAYMENT_URL,
+        product_service_charge: "0",
+        product_delivery_charge: "0",
+        success_url: `${callbackBaseUrl}/api/payment/esewa/success`,
+        failure_url: `${callbackBaseUrl}/api/payment/esewa/failure`,
+        signed_field_names: signedFieldNames,
+        signature: generateSignature(amount, order.transactionUuid),
       },
     });
   } catch (error) {
-    console.error(error);
+    console.error("Create eSewa payment error:", error);
 
-    res.status(500).json({
-      message: "Server error",
+    return res.status(500).json({
+      message: "Failed to create eSewa payment",
       error: error.message,
     });
   }
@@ -205,6 +184,7 @@ const esewaSuccess = async (req, res) => {
     }
 
     // Mark payment as paid
+    order.stockDeducted = true;
     order.paymentStatus = "Paid";
     order.status = "Order Received";
 
@@ -270,57 +250,6 @@ const esewaFailure = async (req, res) => {
   }
 };
 
-
-const deductInventory = async (order) => {
-  const session = await mongoose.startSession();
-
-  try {
-    session.startTransaction();
-
-    const inventoryIds = [
-      order.pizza?.base,
-      order.pizza?.sauce,
-      order.pizza?.cheese,
-      ...(order.pizza?.vegetables || []),
-    ].filter(Boolean);
-
-    for (const inventoryId of inventoryIds) {
-      const updatedItem = await Inventory.findOneAndUpdate(
-        {
-          _id: inventoryId,
-          stock: { $gt: 0 },
-        },
-        {
-          $inc: { stock: -1 },
-        },
-        {
-          new: true,
-          session,
-        }
-      );
-
-      if (!updatedItem) {
-        throw new Error(
-          `Insufficient stock for inventory item ${inventoryId}`
-        );
-      }
-    }
-
-    order.stockDeducted = true;
-    order.paymentStatus = "Paid";
-    order.status = "Order Received";
-
-    await order.save({ session });
-    await session.commitTransaction();
-  } catch (error) {
-    if (session.inTransaction()) {
-      await session.abortTransaction();
-    }
-    throw error;
-  } finally {
-    session.endSession();
-  }
-};
 
 const verifyEsewaTransaction = async (order) => {
   const statusUrl = new URL(
