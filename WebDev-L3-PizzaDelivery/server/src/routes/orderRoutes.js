@@ -5,6 +5,7 @@ const {
     getMyOrders,
     getAllOrders,
     updateOrderStatus,
+    cancelMyOrder,
     markCashPaymentPaid,
 } = require("../controllers/orderController");
 const protect  = require("../middleware/authMiddleware");
@@ -19,6 +20,7 @@ router.post("/", protect, user, createOrder);
 router.get("/my-orders", protect, user, getMyOrders);
 router.get("/all-orders", protect, admin, getAllOrders);
 
+router.patch("/:id/cancel", protect, user, cancelMyOrder);
 router.patch("/:id/status", protect, admin, updateOrderStatus);
 router.patch("/:id/cash-payment", protect, admin, markCashPaymentPaid);
 module.exports = router;

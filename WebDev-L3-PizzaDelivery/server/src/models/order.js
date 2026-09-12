@@ -41,6 +41,12 @@ const orderSchema = new mongoose.Schema(
                 size: String,
                 dough: String,
                 ingredients: String,
+                ingredientIds: [
+                    {
+                        type: mongoose.Schema.Types.ObjectId,
+                        ref: "Inventory",
+                    },
+                ],
                 image: String,
             },
         ],
@@ -86,6 +92,10 @@ const orderSchema = new mongoose.Schema(
             type: String,
             enum: ["Pending", "Paid", "Failed"],
             default: "Pending",
+        },
+        paymentFailureReason: {
+            type: String,
+            trim: true,
         },
         stockDeducted: {
             type: Boolean,

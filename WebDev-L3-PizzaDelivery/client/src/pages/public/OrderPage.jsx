@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { getMyOrders } from "../../services/orderService";
+import { cancelMyOrder, getMyOrders } from "../../services/orderService";
 
 const STATUS_META = {
   "Order Received": {
@@ -52,6 +52,10 @@ const PAYMENT_META = {
     className: "bg-[#FCE8E6] text-[#C5221F]",
     icon: XCircle,
   },
+  Cancelled: {
+    className: "bg-[#FCE8E6] text-[#C5221F]",
+    icon: XCircle,
+  },
 };
 
 const SORT_OPTIONS = [
@@ -80,9 +84,7 @@ const getOrderNumber = (order) =>
   order._id?.slice(-7).toUpperCase() || "-------";
 
 const getStatus = (order) =>
-  order.paymentStatus === "Failed"
-    ? "Cancelled"
-    : order.status || "Order Received";
+  order.status || "Order Received";
 
 const isActive = (order) => {
   const status = getStatus(order);
@@ -310,8 +312,10 @@ function FilterSection({
   );
 }
 
-function OrderDetails({ order, items }) {
-  const paymentStatus = order.paymentStatus || "Pending";
+function OrderDetails({ order, items, onCancel, cancelling }) {
+  const paymentStatus = order.status === "Cancelled"
+    ? order.paymentStatus || "Cancelled"
+    : order.paymentStatus || "Pending";
   const payment = PAYMENT_META[paymentStatus] || PAYMENT_META.Pending;
   const PaymentIcon = payment.icon;
 
@@ -378,6 +382,12 @@ function OrderDetails({ order, items }) {
               {paymentMethod}
             </span>
           </div>
+
+          {order.paymentStatus === "Failed" && (
+            <p className="mt-2 text-xs font-semibold text-[#C5221F]">
+              Reason: {order.paymentFailureReason || "eSewa did not complete the payment."}
+            </p>
+          )}
         </div>
 
         <div className="rounded-xl border border-[#f0e2d0] bg-white p-3.5 sm:p-4">
@@ -396,11 +406,36 @@ function OrderDetails({ order, items }) {
           )}
         </div>
       </div>
+
+      {order.status === "Order Received" && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#f0e2d0] bg-white p-3.5 sm:p-4">
+          <p className="text-xs text-[#6B5C4D]">
+            You can cancel this order within 20 minutes, before it enters the kitchen.
+          </p>
+          {Date.now() - new Date(order.createdAt).getTime() <= 20 * 60 * 1000 ? (
+            <button
+              type="button"
+              onClick={() => onCancel(order)}
+              disabled={cancelling}
+              className="inline-flex items-center gap-2 rounded-lg border border-[#C5221F] px-3 py-2 text-xs font-bold text-[#C5221F] hover:bg-[#FCE8E6] disabled:cursor-wait disabled:opacity-60"
+            >
+              <XCircle className="h-3.5 w-3.5" />
+              {cancelling ? "Cancelling..." : "Cancel order"}
+            </button>
+          ) : <span className="text-xs font-bold text-[#A08E7C]">Cancellation window closed</span>}
+        </div>
+      )}
+
+      {order.status === "In Kitchen" && (
+        <p className="rounded-xl border border-[#f0e2d0] bg-white p-3.5 text-xs font-semibold text-[#9a6a35] sm:p-4">
+          This order is already in the kitchen and can no longer be cancelled.
+        </p>
+      )}
     </div>
   );
 }
 
-function OrderCard({ order, expanded, onToggle }) {
+function OrderCard({ order, expanded, onToggle, onCancel, cancelling }) {
   const items = getItems(order);
   const status = getStatus(order);
   const statusMeta =
@@ -464,7 +499,14 @@ function OrderCard({ order, expanded, onToggle }) {
         </div>
       </button>
 
-      {expanded && <OrderDetails order={order} items={items} />}
+      {expanded && (
+        <OrderDetails
+          order={order}
+          items={items}
+          onCancel={onCancel}
+          cancelling={cancelling}
+        />
+      )}
     </article>
   );
 }
@@ -566,6 +608,7 @@ function OrderPage() {
   const [filter, setFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [cancellingId, setCancellingId] = useState("");
 
   const loadOrders = async (silent = false) => {
     if (silent) {
@@ -594,6 +637,14 @@ function OrderPage() {
   }, []);
 
   useEffect(() => {
+    const refreshInterval = window.setInterval(() => {
+      loadOrders(true);
+    }, 5000);
+
+    return () => window.clearInterval(refreshInterval);
+  }, []);
+
+  useEffect(() => {
     const orderId = searchParams.get("order");
 
     if (orderId && orders.some((order) => order._id === orderId)) {
@@ -613,7 +664,11 @@ function OrderPage() {
     }
 
     if (payment === "failure") {
-      toast.error("Payment failed. Your order is still available.", {
+      const reason =
+        searchParams.get("reason") ||
+        "eSewa did not complete the payment.";
+
+      toast.error(`Payment failed: ${reason}`, {
         id: "order-payment-failure",
       });
 
@@ -686,6 +741,25 @@ function OrderPage() {
     setSortBy("newest");
     setDateFrom("");
     setDateTo("");
+  };
+
+  const handleCancelOrder = async (order) => {
+    if (!window.confirm("Cancel this order? Paid orders may require a refund from the restaurant.")) {
+      return;
+    }
+
+    setCancellingId(order._id);
+    try {
+      const data = await cancelMyOrder(order._id);
+      setOrders((current) => current.map((item) => (
+        item._id === order._id ? { ...item, ...data.order } : item
+      )));
+      toast.success("Order cancelled");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Could not cancel this order");
+    } finally {
+      setCancellingId("");
+    }
   };
 
   return (
@@ -773,6 +847,8 @@ function OrderPage() {
                   key={order._id}
                   order={order}
                   expanded={expandedOrder === order._id}
+                  onCancel={handleCancelOrder}
+                  cancelling={cancellingId === order._id}
                   onToggle={() =>
                     setExpandedOrder(
                       expandedOrder === order._id

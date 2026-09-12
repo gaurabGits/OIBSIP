@@ -463,9 +463,7 @@ function CustomPizzaPage() {
     addCustomPizza({
       price: total,
       base: selection.base.name,
-      ingredients: [selection.base, selection.sauce, selection.cheese, ...selection.vegetables]
-        .map((item) => item.name)
-        .join(', '),
+      ingredients: [selection.base, selection.sauce, selection.cheese, ...selection.vegetables],
     })
     navigate('/cart')
   }

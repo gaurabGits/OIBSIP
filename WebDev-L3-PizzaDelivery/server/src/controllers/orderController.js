@@ -1,7 +1,14 @@
 const Order = require("../models/order");
 const Inventory = require("../models/inventory");
 const { deductInventory, restoreInventory } = require("../services/inventoryService");
+const StoreSettings = require("../models/storeSettings");
 const DELIVERY_FEE = 60;
+const ORDER_STATUS_FLOW = [
+  "Order Received",
+  "In Kitchen",
+  "Sent to Delivery",
+  "Delivered",
+];
 
 const createOrder = async (req, res) => {
   try {
@@ -19,6 +26,13 @@ const createOrder = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         message: "Not authorized, user missing",
+      });
+    }
+
+    const storeSettings = await StoreSettings.findOne({ key: "main" });
+    if (storeSettings && !storeSettings.isOpen) {
+      return res.status(423).json({
+        message: "We are busy right now. Please try again in a few hours.",
       });
     }
 
@@ -45,6 +59,9 @@ const createOrder = async (req, res) => {
         size: item.size,
         dough: item.dough,
         ingredients: item.ingredients,
+        ingredientIds: Array.isArray(item.ingredientIds)
+          ? item.ingredientIds
+          : [],
         image: item.image,
       }));
 
@@ -65,8 +82,25 @@ const createOrder = async (req, res) => {
         paymentMethod: normalizedPaymentMethod,
         status: "Order Received",
         paymentStatus: "Pending",
-        stockDeducted: true,
+        stockDeducted: false,
       });
+
+      if (normalizedPaymentMethod === "cash") {
+        try {
+          await deductInventory(order);
+          order.stockDeducted = order.items.some(
+            (item) => item.ingredientIds.length > 0
+          );
+          await order.save();
+        } catch (error) {
+          await Order.findByIdAndDelete(order._id);
+
+          return res.status(400).json({
+            message: "Unable to create order because stock is insufficient",
+            error: error.message,
+          });
+        }
+      }
 
 
       return res.status(201).json({
@@ -236,21 +270,13 @@ const updateOrderStatus = async (req, res) => {
     try {
         const { status } = req.body || {};
 
-        const allowedStatuses = [
-            "Order Received",
-            "In Kitchen",
-            "Sent to Delivery",
-            "Delivered",
-            "Cancelled",
-        ];
-
         if (!status) {
             return res.status(400).json({
                 message: "Order status is required",
             });
         }
 
-        if (!allowedStatuses.includes(status)) {
+        if (![...ORDER_STATUS_FLOW, "Cancelled"].includes(status)) {
             return res.status(400).json({
                 message: "Invalid order status",
             });
@@ -262,6 +288,30 @@ const updateOrderStatus = async (req, res) => {
             return res.status(404).json({
                 message: "Order not found",
             });
+        }
+
+        if (order.status === "Cancelled" && status !== "Cancelled") {
+          return res.status(400).json({
+            message: "Cancelled orders cannot be reopened",
+          });
+        }
+
+        if (status === "Cancelled") {
+          return res.status(400).json({
+            message: "Customers must cancel orders from their order history",
+          });
+        }
+
+        const currentStatusIndex = ORDER_STATUS_FLOW.indexOf(order.status);
+        const nextStatusIndex = ORDER_STATUS_FLOW.indexOf(status);
+
+        if (
+          currentStatusIndex === -1 ||
+          nextStatusIndex < currentStatusIndex
+        ) {
+          return res.status(400).json({
+            message: "Order status cannot move backwards",
+          });
         }
 
         if (status === "Cancelled" && order.status !== "Cancelled" && order.stockDeducted) {
@@ -282,6 +332,51 @@ const updateOrderStatus = async (req, res) => {
             error: error.message,
         });
     }
+};
+
+const cancelMyOrder = async (req, res) => {
+  try {
+    const order = await Order.findOne({
+      _id: req.params.id,
+      user: req.user?.id,
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (order.status !== "Order Received") {
+      return res.status(400).json({
+        message: "This order has entered the kitchen and cannot be cancelled",
+      });
+    }
+
+    const twentyMinutes = 20 * 60 * 1000;
+    if (Date.now() - new Date(order.createdAt).getTime() > twentyMinutes) {
+      return res.status(400).json({
+        message: "Orders can only be cancelled within 20 minutes",
+      });
+    }
+
+    if (order.stockDeducted) {
+      await restoreInventory(order);
+      order.stockDeducted = false;
+    }
+
+    order.status = "Cancelled";
+    await order.save();
+
+    return res.status(200).json({
+      message: "Order cancelled successfully",
+      order,
+    });
+  } catch (error) {
+    console.error("Cancel order error:", error);
+    return res.status(500).json({
+      message: "Could not cancel order",
+      error: error.message,
+    });
+  }
 };
 
 const markCashPaymentPaid = async (req, res) => {
@@ -332,6 +427,7 @@ module.exports = {
   getMyOrders,
   getAllOrders,
   updateOrderStatus,
+  cancelMyOrder,
   markCashPaymentPaid,
 };
 

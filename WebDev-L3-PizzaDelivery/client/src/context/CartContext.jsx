@@ -66,7 +66,8 @@ export function CartProvider({ children }) {
         size: 'Custom',
         quantity: 1,
         isCustom: true,
-        ingredients: pizza.ingredients,
+        ingredients: pizza.ingredients.map((ingredient) => ingredient.name).join(', '),
+        ingredientIds: pizza.ingredients.map((ingredient) => ingredient._id),
       },
     ])
   }

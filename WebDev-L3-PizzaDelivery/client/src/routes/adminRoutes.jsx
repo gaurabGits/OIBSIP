@@ -1,6 +1,7 @@
 import AdminDashboardPage from "../pages/admin/AdminDashboard";
 import AdminOrdersPage from "../pages/admin/AdminOrdersPage";
 import InventoryPage from "../pages/admin/InventoryPage";
+import UserManagementPage from "../pages/admin/UserManagementPage";
 
 const adminRoutes = [
   {
@@ -22,6 +23,10 @@ const adminRoutes = [
   {
     path: "inventory",
     element: <InventoryPage />,
+  },
+  {
+    path: "users",
+    element: <UserManagementPage />,
   },
 ];
 

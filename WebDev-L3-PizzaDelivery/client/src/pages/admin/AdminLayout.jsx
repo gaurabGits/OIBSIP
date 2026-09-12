@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -12,10 +12,12 @@ import {
   Search,
   Bell,
   CircleCheck,
+  Users,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import useAuth from "../../hooks/useAuth";
+import { getStoreStatus, updateStoreStatus } from "../../services/adminService";
 
 
 const NAV_ITEMS = [
@@ -35,12 +37,20 @@ const NAV_ITEMS = [
     to: "/admin/inventory",
     icon: Package,
   },
+  {
+    label: "Users",
+    to: "/admin/users",
+    icon: Users,
+  },
 ];
 
 export function AdminLayout() {
-  const [isStoreOpen, setIsStoreOpen] = useState(true);
+  const [isStoreOpen, setIsStoreOpen] = useState(() => {
+    return localStorage.getItem("slicehouse-store-open") !== "false";
+  });
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [storeStatusLoading, setStoreStatusLoading] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -56,6 +66,33 @@ export function AdminLayout() {
   const currentPage =
     NAV_ITEMS.find((item) => location.pathname.startsWith(item.to))?.label ??
     "Dashboard";
+
+  useEffect(() => {
+    let mounted = true;
+    getStoreStatus()
+      .then((data) => {
+        if (mounted) setIsStoreOpen(data.isOpen !== false);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (mounted) setStoreStatusLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const toggleStoreStatus = async () => {
+    const next = !isStoreOpen;
+    try {
+      const data = await updateStoreStatus(next);
+      setIsStoreOpen(data.isOpen !== false);
+      window.dispatchEvent(new Event("slicehouse-store-status"));
+    } catch {
+      toast.error("Could not update store status");
+    }
+  };
 
   return (
     <div className="flex h-screen w-screen overflow-hidden font-sans bg-gray-50">
@@ -171,7 +208,8 @@ export function AdminLayout() {
                 {isStoreOpen ? "Accepting Orders" : "Orders Paused"}
               </span>
               <button
-                onClick={() => setIsStoreOpen(!isStoreOpen)}
+                onClick={toggleStoreStatus}
+                disabled={storeStatusLoading}
                 className="ml-1 border-l border-gray-300 pl-2 text-xs font-bold text-red-700 hover:text-red-900 hover:underline"
               >
                 {isStoreOpen ? "Pause" : "Resume"}

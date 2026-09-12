@@ -6,6 +6,7 @@ import api from '../../services/api'
 import { useCart } from '../../context/CartContext'
 import useAuth from '../../hooks/useAuth'
 import { DELIVERY_FEE } from '../../utils/pricing'
+import { getStoreStatus } from '../../services/adminService'
 
 const ADDRESS_FIELDS = [
   {
@@ -80,6 +81,7 @@ function CheckoutPage() {
 
   const [paymentMethod, setPaymentMethod] = useState('cash')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isStoreOpen, setIsStoreOpen] = useState(true)
 
   const total = subtotal + deliveryFee
 
@@ -105,6 +107,27 @@ function CheckoutPage() {
       navigate('/orders?payment=failure', { replace: true })
     }
   }, [searchParams, clearCart, navigate])
+
+  useEffect(() => {
+    const syncStoreStatus = async () => {
+      try {
+        const data = await getStoreStatus()
+        setIsStoreOpen(data.isOpen !== false)
+      } catch {
+        setIsStoreOpen(true)
+      }
+    }
+
+    syncStoreStatus()
+    const statusInterval = window.setInterval(syncStoreStatus, 5000)
+
+    window.addEventListener('slicehouse-store-status', syncStoreStatus)
+
+    return () => {
+      window.clearInterval(statusInterval)
+      window.removeEventListener('slicehouse-store-status', syncStoreStatus)
+    }
+  }, [])
 
   function updateAddress(event) {
     const { name, value } = event.target
@@ -139,6 +162,11 @@ function CheckoutPage() {
     event.preventDefault()
 
     if (!items.length) return
+
+    if (!isStoreOpen) {
+      toast.error('We are busy right now. Please try again in a few hours.')
+      return
+    }
 
     setIsSubmitting(true)
 
@@ -216,6 +244,19 @@ function CheckoutPage() {
             Back to cart
           </Link>
         </div>
+
+        {!isStoreOpen && (
+          <div
+            role="alert"
+            className="mb-6 flex items-start gap-3 rounded-xl border border-[#e8c27a] bg-[#fff7e8] px-4 py-4 text-[#8a571b]"
+          >
+            <span className="mt-0.5 text-lg" aria-hidden="true">!</span>
+            <div>
+              <p className="font-bold">We are busy right now</p>
+              <p className="mt-1 text-sm">Please try again in a few hours. New orders are temporarily paused.</p>
+            </div>
+          </div>
+        )}
 
         {/* Checkout Card */}
         <form
@@ -316,7 +357,7 @@ function CheckoutPage() {
 
             {/* Submit Button */}
             <button
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isStoreOpen}
               type="submit"
               className={`mt-7 flex h-12 w-full items-center justify-center rounded-xl text-sm font-bold text-white transition hover:opacity-95 disabled:cursor-wait disabled:opacity-60 ${
                 paymentMethod === 'esewa'
@@ -324,7 +365,9 @@ function CheckoutPage() {
                   : 'bg-gradient-to-r from-[#C1442D] to-[#E1673F]'
               }`}
             >
-              {isSubmitting
+              {!isStoreOpen
+                ? 'Ordering paused'
+                : isSubmitting
                 ? 'Processing...'
                 : paymentMethod === 'cash'
                   ? 'Place order'

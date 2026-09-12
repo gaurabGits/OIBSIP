@@ -9,6 +9,13 @@ const { deductInventory } = require("../services/inventoryService");
 
 const getClientUrl = () => process.env.CLIENT_URL || "http://localhost:5173";
 
+const redirectToPaymentFailure = (reason) => {
+  const failureUrl = new URL(`${getClientUrl()}/orders`);
+  failureUrl.searchParams.set("payment", "failure");
+  failureUrl.searchParams.set("reason", reason);
+  return failureUrl.toString();
+};
+
 
 const createEsewaPayment = async (req, res) => {
   try {
@@ -53,6 +60,8 @@ const createEsewaPayment = async (req, res) => {
     const signedFieldNames = "total_amount,transaction_uuid,product_code";
     const callbackBaseUrl =
       process.env.SERVER_URL || `${req.protocol}://${req.get("host")}`;
+    const failureUrl = new URL(`${callbackBaseUrl}/api/payment/esewa/failure`);
+    failureUrl.searchParams.set("orderId", order._id.toString());
 
     return res.status(200).json({
       paymentUrl: ESEWA_PAYMENT_URL,
@@ -65,7 +74,7 @@ const createEsewaPayment = async (req, res) => {
         product_service_charge: "0",
         product_delivery_charge: "0",
         success_url: `${callbackBaseUrl}/api/payment/esewa/success`,
-        failure_url: `${callbackBaseUrl}/api/payment/esewa/failure`,
+        failure_url: failureUrl.toString(),
         signed_field_names: signedFieldNames,
         signature: generateSignature(amount, order.transactionUuid),
       },
@@ -156,15 +165,18 @@ const esewaSuccess = async (req, res) => {
     );
 
     if (statusData.status !== "COMPLETE") {
+      const reason = String(
+        statusData.message ||
+          statusData.response_message ||
+          `eSewa payment status: ${statusData.status}`
+      );
       order.paymentStatus = "Failed";
+      order.paymentFailureReason = reason;
       order.status = "Cancelled";
 
       await order.save();
 
-      return res.status(400).json({
-        message: "eSewa payment was not completed",
-        status: statusData.status,
-      });
+      return res.redirect(redirectToPaymentFailure(reason));
     }
 
     // Make sure status API also matches our transaction
@@ -178,13 +190,20 @@ const esewaSuccess = async (req, res) => {
       });
     }
 
-    // Deduct inventory
-    if (!order.stockDeducted && order.items?.length === 0) {
+    const hasCustomPizzaItems = order.items?.some((item) =>
+      item.ingredientIds?.length
+    );
+    const isCustomPizzaOrder = Boolean(
+      order.pizza?.base && order.pizza?.sauce && order.pizza?.cheese
+    ) || hasCustomPizzaItems;
+
+    // Deduct custom-pizza ingredients only after payment is complete.
+    if (!order.stockDeducted && isCustomPizzaOrder) {
       await deductInventory(order);
     }
 
     // Mark payment as paid
-    order.stockDeducted = true;
+    order.stockDeducted = isCustomPizzaOrder;
     order.paymentStatus = "Paid";
     order.status = "Order Received";
 
@@ -204,11 +223,24 @@ const esewaSuccess = async (req, res) => {
 
 const esewaFailure = async (req, res) => {
   try {
-    const { data } = req.query;
+    const { data, orderId } = req.query;
 
     // eSewa may not always provide response data
     if (!data) {
-      return res.redirect(`${getClientUrl()}/orders?payment=failure`);
+      const reason = "eSewa did not complete the payment.";
+
+      if (orderId) {
+        await Order.findOneAndUpdate(
+          { _id: orderId, paymentStatus: { $ne: "Paid" } },
+          {
+            paymentStatus: "Failed",
+            paymentFailureReason: reason,
+            status: "Cancelled",
+          },
+        );
+      }
+
+      return res.redirect(redirectToPaymentFailure(reason));
     }
 
     const decodedData = Buffer.from(
@@ -217,6 +249,12 @@ const esewaFailure = async (req, res) => {
     ).toString("utf-8");
 
     const paymentData = JSON.parse(decodedData);
+    const reason = String(
+      paymentData.message ||
+        paymentData.response_message ||
+        paymentData.status ||
+        "eSewa did not complete the payment."
+    );
 
     if (!verifySignature(paymentData) || paymentData.product_code !== ESEWA_PRODUCT_CODE) {
       return res.status(400).json({
@@ -225,18 +263,18 @@ const esewaFailure = async (req, res) => {
     }
 
     const order = await Order.findOne({
-      transactionUuid:
-        paymentData.transaction_uuid,
+      transactionUuid: paymentData.transaction_uuid,
     });
 
     if (order && order.paymentStatus !== "Paid") {
       order.paymentStatus = "Failed";
+      order.paymentFailureReason = reason;
       order.status = "Cancelled";
 
       await order.save();
     }
 
-    return res.redirect(`${getClientUrl()}/orders?payment=failure`);
+    return res.redirect(redirectToPaymentFailure(reason));
   } catch (error) {
     console.error(
       "eSewa failure error:",
