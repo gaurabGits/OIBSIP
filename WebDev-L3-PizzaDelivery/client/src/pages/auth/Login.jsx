@@ -28,7 +28,7 @@ function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      const redirectPath = location.state?.from?.pathname || '/profile';
+      const redirectPath = location.state?.from?.pathname || '/#hero';
       navigate(redirectPath, { replace: true });
     }
   }, [isAuthenticated, location.state, navigate]);
@@ -69,7 +69,7 @@ function LoginPage() {
 
       toast.success('Logged in successfully');
 
-      const redirectTo = location.state?.from?.pathname || '/profile';
+      const redirectTo = location.state?.from?.pathname || '/#hero';
       navigate(redirectTo, { replace: true });
     } catch (err) {
       const message = err.response?.data?.message || err.message || 'Login failed. Please try again.';
