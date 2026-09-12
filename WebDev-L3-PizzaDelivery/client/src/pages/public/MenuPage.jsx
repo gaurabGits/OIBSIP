@@ -1,21 +1,54 @@
-import { useMemo, useState } from 'react'
-import { UtensilsCrossed } from 'lucide-react'
-import { menu } from '../../services/data/menu'
+import { useEffect, useMemo, useState } from 'react'
+import { ArrowUpRight, UtensilsCrossed } from 'lucide-react'
 import PizzaCard from '../../component/cart/PizzaCard'
 import fireImage from '../../assets/images/Fireimage.png'
+import { getPizzas } from "../../services/pizzaService";
+import { Link } from 'react-router-dom'
 
-
-
-const CATEGORIES = ['All', ...new Set(menu.map((item) => item.category))]
 
 function MenuPage() {
   const [activeCategory, setActiveCategory] = useState('All')
+  const [menu, setMenu] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadPizzas = async () => {
+      try {
+        const response = await getPizzas()
+        if (isMounted) {
+          setMenu(response.pizzas ?? [])
+        }
+      } catch {
+        if (isMounted) {
+          setError('Unable to load the menu right now.')
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadPizzas()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const categories = useMemo(
+    () => ['All', ...new Set(menu.map((item) => item.category).filter(Boolean))],
+    [menu],
+  )
 
   const filteredMenu = useMemo(() => {
     return activeCategory === 'All'
       ? menu
       : menu.filter((item) => item.category === activeCategory)
-  }, [activeCategory])
+  }, [activeCategory, menu])
 
   return (
     <main className="min-h-screen w-full overflow-x-hidden bg-[#FAF6EF] text-[#171717]">
@@ -54,10 +87,13 @@ function MenuPage() {
         </div>
       </section>
 
-      <section className="sticky top-0 z-30 border-b border-black/5 bg-[#FAF6EF]/95 shadow-sm backdrop-blur-lg">
+      <section
+        id="menu-categories"
+        className="sticky top-0 z-30 scroll-mt-[72px] border-b border-black/5 bg-[#FAF6EF]/95 shadow-sm backdrop-blur-lg"
+      >
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex gap-2 overflow-x-auto py-3 sm:py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {CATEGORIES.map((category) => {
+            {categories.map((category) => {
               const isActive = activeCategory === category
 
               return (
@@ -92,12 +128,30 @@ function MenuPage() {
               </h2>
             </div>
 
-            <span className="hidden rounded-full bg-black/[0.04] px-3 py-1.5 text-xs font-medium text-black/50 sm:block">
-              {filteredMenu.length} {filteredMenu.length === 1 ? 'pizza' : 'pizzas'}
-            </span>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="hidden rounded-full bg-black/[0.04] px-3 py-1.5 text-xs font-medium text-black/50 sm:block">
+                {filteredMenu.length} {filteredMenu.length === 1 ? 'pizza' : 'pizzas'}
+              </span>
+
+              <Link
+                to="/custom-pizza"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-[#C1442D] px-3 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-[#A93724] hover:shadow-md sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
+              >
+                Build your own
+                <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              </Link>
+            </div>
           </div>
 
-          {filteredMenu.length === 0 ? (
+          {isLoading ? (
+            <div className="flex min-h-[260px] items-center justify-center text-sm font-medium text-black/50 sm:text-base">
+              Loading pizzas...
+            </div>
+          ) : error ? (
+            <div className="flex min-h-[260px] items-center justify-center rounded-3xl border border-dashed border-black/10 bg-white/40 px-6 text-center">
+              <p className="text-sm font-medium text-[#C1442D] sm:text-base">{error}</p>
+            </div>
+          ) : filteredMenu.length === 0 ? (
             <div className="flex min-h-[260px] items-center justify-center rounded-3xl border border-dashed border-black/10 bg-white/40 px-6 text-center">
               <div>
                 <UtensilsCrossed className="mx-auto mb-3 h-8 w-8 text-black/20" />
@@ -110,7 +164,7 @@ function MenuPage() {
             <div className="grid min-w-0 grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 lg:gap-6 xl:grid-cols-4">
               {filteredMenu.map((pizza) => (
                 <PizzaCard
-                  key={pizza.id}
+                  key={pizza._id}
                   pizza={pizza}
                 />
               ))}

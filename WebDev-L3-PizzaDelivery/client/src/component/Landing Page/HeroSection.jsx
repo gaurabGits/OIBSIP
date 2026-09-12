@@ -1,5 +1,5 @@
 ﻿import { useEffect, useRef, useState } from 'react';
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { ArrowUpRight } from 'lucide-react';
 
 import pizzaImg from '../../assets/images/pizza.png';
@@ -8,7 +8,6 @@ import cheeseImg from '../../assets/images/cheese.png';
 import meatsImg from '../../assets/images/meats.png';
 import herbsImg from '../../assets/images/herbs.png';
 import veggiesImg from '../../assets/images/veggies.png';
-import { scrollToSection } from '../../utils/scrollToSection';
 
 const INGREDIENTS = [
   { name: 'Sauce', desc: 'San Marzano tomatoes', img: sauceImg },
@@ -28,6 +27,7 @@ const ROTATE_TIME = 1000;
 const PAUSE_TIME = 2800;
 
 function HeroSection() {
+  const navigate = useNavigate();
   const [active, setActive] = useState(0);
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -84,7 +84,7 @@ function HeroSection() {
             <button
               className="hero-primary-btn"
               type="button"
-              onClick={() => scrollToSection('menu')}
+              onClick={() => navigate('/custom-pizza')}
             >
               Customize Your Pizza
               <ArrowUpRight size={17} strokeWidth={2.5} />

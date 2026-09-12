@@ -1,25 +1,49 @@
 import { useState } from 'react';
 import { Minus, Plus, ShoppingBag } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import useAuth from '../../hooks/useAuth';
+import { useCart } from '../../context/CartContext';
+import { getPizzaPrice } from '../../utils/pricing';
 
 const SIZES = ['S', 'M', 'L', 'XL', '2XL', '3XL'];
 
 function PizzaCard({ pizza }) {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { isAuthenticated } = useAuth();
+    const { addToCart } = useCart();
     const [qty, setQty] = useState(1);
     const [selectedSize, setSelectedSize] = useState('M');
 
     const {
-        pizzaImg,
+        image,
         name,
-        desc,
-        dough,
+        description,
+        dough = 'Classic crust',
         price,
     } = pizza;
 
+    const handleOrder = () => {
+        if (!isAuthenticated) {
+            navigate('/login', { state: { from: location } });
+            return;
+        }
+
+        addToCart(pizza, qty, selectedSize);
+        navigate('/cart');
+    };
+
+    const selectedPrice = getPizzaPrice(price, selectedSize);
+
     return (
         <div className="group w-full min-w-0 overflow-hidden rounded-xl bg-white shadow-md transition-all duration-300 hover:shadow-xl">
-            <div className="relative h-48 w-full overflow-hidden sm:h-56 md:h-60">
+            <Link
+                to={`/pizza/${pizza._id}`}
+                className="relative block h-48 w-full overflow-hidden sm:h-56 md:h-60"
+                aria-label={`View details for ${name}`}
+            >
                 <img
-                    src={pizzaImg}
+                    src={image}
                     alt={name}
                     loading="lazy"
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -33,17 +57,17 @@ function PizzaCard({ pizza }) {
                     </h3>
 
                     <p className="mt-1 truncate text-[10px] text-white/90 sm:text-xs">
-                        {desc}
+                        {description}
                     </p>
                 </div>
-            </div>
+            </Link>
 
             <div className="p-3 sm:p-4">
                 <div className="flex items-center justify-between gap-3">
 
                     <div className="min-w-0">
-                        <p className="text-base font-bold text-[#171717] sm:text-lg md:text-xl">
-                            Rs. {price}
+                        <p className="min-w-[7rem] whitespace-nowrap text-base font-bold tabular-nums text-[#171717] sm:text-lg md:text-xl">
+                            Rs. {selectedPrice}
                         </p>
 
                         <div className="mt-1 flex items-center gap-1.5 text-[10px] font-semibold text-black sm:text-xs">
@@ -113,6 +137,7 @@ function PizzaCard({ pizza }) {
 
                 <button
                     type="button"
+                    onClick={handleOrder}
                     className="mt-3 flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#C1442D] text-xs font-bold text-white shadow-sm transition-all duration-200 hover:bg-[#A93724] hover:shadow-md active:scale-[0.98] sm:mt-4 sm:h-11 sm:text-sm"
                 >
                     <ShoppingBag

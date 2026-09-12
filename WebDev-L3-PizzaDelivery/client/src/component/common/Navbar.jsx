@@ -2,9 +2,9 @@ import { useState, useRef, useEffect } from 'react'
 import { Menu as MenuIcon, X, ShoppingCart, User, LogOut, ClipboardList, ChevronDown, Loader2 } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import SystemLogo from '../../assets/icons/SystemLogo'
-import { getHashTarget, scrollToSection } from '../../utils/scrollToSection'
 import useAuth from '../../hooks/useAuth'
 import toast from 'react-hot-toast'
+import { useCart } from '../../context/CartContext'
 
 const MIN_AUTH_LOADING_MS = 500
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -17,7 +17,6 @@ const navLinks = [
 
 function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [cartCount] = useState(1)
   const [profileOpen, setProfileOpen] = useState(false)
   const [hidden, setHidden] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
@@ -27,6 +26,7 @@ function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, isAuthenticated, logout } = useAuth()
+  const { itemCount: cartCount } = useCart()
 
   const currentUser = {
     name: user?.fname || user?.name || 'User',
@@ -103,22 +103,6 @@ function Navbar() {
 
   const closeMobileMenu = () => setMobileOpen(false)
 
-  const handleHashNavigation = (event, href) => {
-    const target = getHashTarget(href)
-
-    if (!target) {
-      return
-    }
-
-    setMobileOpen(false)
-
-    if (target.path === location.pathname) {
-      event.preventDefault()
-      scrollToSection(target.id)
-      window.history.pushState(null, '', `${target.path}${target.hash}`)
-    }
-  }
-
   const handleLogout = async () => {
     setIsLoggingOut(true)
     await wait(MIN_AUTH_LOADING_MS)
@@ -148,7 +132,6 @@ function Navbar() {
                 <Link
                   key={link.label}
                   to={link.href}
-                  onClick={(event) => handleHashNavigation(event, link.href)}
                   className={`relative rounded-lg px-4 py-2.5 text-[15px] font-semibold tracking-wide transition-colors duration-200 after:absolute after:bottom-1 after:left-4 after:right-4 after:h-[3px] after:rounded-full after:bg-amber-400 after:origin-left after:transition-transform after:duration-300 ${
                     isActive(link.href) ? 'text-amber-400 after:scale-x-100' : 'text-[#fffaf2] after:scale-x-0 hover:text-amber-400'
                   }`}
@@ -160,6 +143,15 @@ function Navbar() {
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+            <Link to="/cart" aria-label="View cart" className="relative hidden h-11 w-11 place-items-center rounded-full text-[#fffaf2] transition-colors hover:bg-white/10 lg:grid">
+              <ShoppingCart className="h-[22px] w-[22px]" />
+              {cartCount > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-amber-400 px-1 text-[11px] font-bold text-stone-900 shadow">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+
             {isAuthenticated ? (
               <div ref={profileRef} className="relative hidden lg:block">
                 <button
@@ -216,15 +208,6 @@ function Navbar() {
               </div>
             ) : (
               <div className="hidden items-center gap-2 lg:flex">
-                <Link to="/cart" aria-label="View cart" className="relative grid h-11 w-11 place-items-center rounded-full text-[#fffaf2] transition-colors hover:bg-white/10">
-                  <ShoppingCart className="h-[22px] w-[22px]" />
-                  {cartCount > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-amber-400 px-1 text-[11px] font-bold text-stone-900 shadow">
-                      {cartCount}
-                    </span>
-                  )}
-                </Link>
-
                 <Link to="/login" className="rounded-full px-4 py-2.5 text-[15px] font-semibold text-[#fffaf2] transition-colors hover:bg-white/10">
                   Log In
                 </Link>
@@ -258,7 +241,7 @@ function Navbar() {
                   <Link
                     key={link.label}
                     to={link.href}
-                    onClick={(event) => handleHashNavigation(event, link.href)}
+                    onClick={closeMobileMenu}
                     className={`border-b border-white/10 py-3.5 font-semibold transition-colors ${
                       isActive(link.href) ? 'text-amber-400' : 'text-[#fffaf2] hover:text-amber-400'
                     }`}
@@ -294,6 +277,11 @@ function Navbar() {
                   </>
                 ) : (
                   <div className="mt-4 flex flex-col gap-2">
+                    <Link to="/cart" onClick={closeMobileMenu} className="flex items-center justify-center gap-2 rounded-full bg-amber-400 px-5 py-3 font-extrabold text-stone-900 shadow-md transition hover:bg-amber-500">
+                      <ShoppingCart className="h-[18px] w-[18px]" />
+                      Cart {cartCount > 0 && `(${cartCount})`}
+                    </Link>
+
                     <Link to="/login" onClick={closeMobileMenu} className="rounded-full border border-white/30 px-5 py-3 text-center font-bold text-[#fffaf2] transition hover:bg-white/10">
                       Log In
                     </Link>

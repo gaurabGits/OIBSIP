@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { routes } from "./routes/AppRoutes";
 import Layout from "./component/common/Layout";
 
@@ -10,7 +10,12 @@ import { Toaster } from 'react-hot-toast';
 
 const renderRoutes = (routeList) =>
   routeList.map((route, index) => (
-    <Route key={route.path || index} path={route.path} element={route.element}>
+    <Route
+      key={route.path || index}
+      index={route.index}
+      path={route.index ? undefined : route.path}
+      element={route.element}
+    >
       {route.children ? renderRoutes(route.children) : null}
     </Route>
   ));
@@ -52,6 +57,8 @@ function App() {
       <Route path="/" element={<Layout />}>
         {renderRoutes(routes)}
       </Route>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
 
       {/* Admin routes */}
       <Route path="/admin/login" element={<LoginPage />} />

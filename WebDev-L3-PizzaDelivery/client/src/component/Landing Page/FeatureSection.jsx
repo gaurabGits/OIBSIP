@@ -60,7 +60,7 @@ function FeatureSection() {
           </div>
 
           <Link
-            to="/menu"
+            to="/custom-pizza"
             className="mt-10 inline-flex items-center gap-2 font-sans text-sm font-semibold text-[#C1442D] transition-colors hover:text-[#1C1712]"
           >
             Start building your pizza
