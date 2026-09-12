@@ -24,7 +24,7 @@ function SignUpPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard', { replace: true });
+      navigate('/profile', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 

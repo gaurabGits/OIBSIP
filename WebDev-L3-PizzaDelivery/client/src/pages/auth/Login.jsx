@@ -28,9 +28,10 @@ function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard', { replace: true });
+      const redirectPath = location.state?.from?.pathname || '/profile';
+      navigate(redirectPath, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, location.state, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -68,7 +69,7 @@ function LoginPage() {
 
       toast.success('Logged in successfully');
 
-      const redirectTo = location.state?.from?.pathname || '/dashboard';
+      const redirectTo = location.state?.from?.pathname || '/profile';
       navigate(redirectTo, { replace: true });
     } catch (err) {
       const message = err.response?.data?.message || err.message || 'Login failed. Please try again.';
@@ -200,12 +201,6 @@ function LoginPage() {
             Sign Up
           </Link>
         </p>
-        <Link
-          to="/verify-email"
-          className="mt-3 block text-center text-sm font-bold text-[#E8641F] hover:text-[#c94a1f]"
-        >
-          Need to verify your email?
-        </Link>
       </div>
     </div>
   );

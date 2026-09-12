@@ -8,6 +8,14 @@ const adminRoutes = [
     element: <AdminDashboardPage />,
   },
   {
+    path: "profile",
+    element: <AdminDashboardPage />,
+  },
+  {
+    path: "settings",
+    element: <AdminDashboardPage />,
+  },
+  {
     path: "orders",
     element: <AdminOrdersPage />,
   },

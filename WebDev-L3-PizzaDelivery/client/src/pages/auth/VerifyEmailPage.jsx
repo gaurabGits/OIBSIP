@@ -74,7 +74,7 @@ function VerifyEmailPage() {
       completeVerification(data);
       localStorage.removeItem('pendingVerificationEmail');
       toast.success('Email verified. Welcome to SliceHouse!');
-      navigate('/dashboard', { replace: true });
+      navigate('/profile', { replace: true });
     } catch (requestError) {
       const message = requestError.response?.data?.message || 'Unable to verify your email.';
       setError(message);

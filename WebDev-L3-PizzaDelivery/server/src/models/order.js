@@ -12,19 +12,16 @@ const orderSchema = new mongoose.Schema(
             base: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Inventory",
-                required: true,
             },
 
             sauce: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Inventory",
-                required: true,
             },
 
             cheese: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Inventory",
-                required: true,
             },
 
             vegetables: [
@@ -33,6 +30,26 @@ const orderSchema = new mongoose.Schema(
                     ref: "Inventory",
                 },
             ],
+        },
+
+        items: [
+            {
+                itemId: { type: String, required: true },
+                name: { type: String, required: true },
+                price: { type: Number, required: true, min: 0 },
+                quantity: { type: Number, required: true, min: 1 },
+                size: String,
+                dough: String,
+                ingredients: String,
+                image: String,
+            },
+        ],
+
+        address: {
+            fullName: { type: String, required: true, trim: true },
+            phone: { type: String, required: true, trim: true },
+            line: { type: String, required: true, trim: true },
+            city: { type: String, required: true, trim: true },
         },
 
         totalPrice: {

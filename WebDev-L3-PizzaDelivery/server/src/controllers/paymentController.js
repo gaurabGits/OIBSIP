@@ -7,6 +7,8 @@ const {
 } = require("../config/esewa");
 const { deductInventory } = require("../services/inventoryService");
 
+const getClientUrl = () => process.env.CLIENT_URL || "http://localhost:5173";
+
 
 const createEsewaPayment = async (req, res) => {
   try {
@@ -141,10 +143,7 @@ const esewaSuccess = async (req, res) => {
 
     // Prevent duplicate processing
     if (order.paymentStatus === "Paid") {
-      return res.status(200).json({
-        message: "Payment already verified",
-        order,
-      });
+      return res.redirect(`${getClientUrl()}/orders?payment=success`);
     }
 
     // Check transaction status with eSewa
@@ -158,6 +157,7 @@ const esewaSuccess = async (req, res) => {
 
     if (statusData.status !== "COMPLETE") {
       order.paymentStatus = "Failed";
+      order.status = "Cancelled";
 
       await order.save();
 
@@ -179,7 +179,7 @@ const esewaSuccess = async (req, res) => {
     }
 
     // Deduct inventory
-    if (!order.stockDeducted) {
+    if (!order.stockDeducted && order.items?.length === 0) {
       await deductInventory(order);
     }
 
@@ -190,10 +190,7 @@ const esewaSuccess = async (req, res) => {
 
     await order.save();
 
-    res.status(200).json({
-      message: "eSewa payment verified successfully",
-      order,
-    });
+    return res.redirect(`${getClientUrl()}/orders?payment=success`);
   } catch (error) {
     console.error("eSewa success error:", error);
 
@@ -211,9 +208,7 @@ const esewaFailure = async (req, res) => {
 
     // eSewa may not always provide response data
     if (!data) {
-      return res.status(200).json({
-        message: "eSewa payment failed or cancelled",
-      });
+      return res.redirect(`${getClientUrl()}/orders?payment=failure`);
     }
 
     const decodedData = Buffer.from(
@@ -236,13 +231,12 @@ const esewaFailure = async (req, res) => {
 
     if (order && order.paymentStatus !== "Paid") {
       order.paymentStatus = "Failed";
+      order.status = "Cancelled";
 
       await order.save();
     }
 
-    res.status(200).json({
-      message: "eSewa payment failed or cancelled",
-    });
+    return res.redirect(`${getClientUrl()}/orders?payment=failure`);
   } catch (error) {
     console.error(
       "eSewa failure error:",

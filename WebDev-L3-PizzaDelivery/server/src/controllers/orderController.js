@@ -1,6 +1,7 @@
 const Order = require("../models/order");
 const Inventory = require("../models/inventory");
 const { deductInventory, restoreInventory } = require("../services/inventoryService");
+const DELIVERY_FEE = 60;
 
 const createOrder = async (req, res) => {
   try {
@@ -10,6 +11,8 @@ const createOrder = async (req, res) => {
       cheeseId,
       vegetableIds = [],
       paymentMethod,
+      items = [],
+      address,
     } = req.body;
     const userId = req.user?.id;
 
@@ -23,15 +26,58 @@ const createOrder = async (req, res) => {
       .trim()
       .toLowerCase();
 
-    if (!baseId || !sauceId || !cheeseId) {
-      return res.status(400).json({
-        message: "Base, sauce and cheese are required",
-      });
-    }
-
     if (!["esewa", "cash"].includes(normalizedPaymentMethod)) {
       return res.status(400).json({
         message: "Invalid payment method",
+      });
+    }
+
+    if (items.length > 0) {
+      if (!address?.fullName || !address?.phone || !address?.line || !address?.city) {
+        return res.status(400).json({ message: "Delivery address is required" });
+      }
+
+      const normalizedItems = items.map((item) => ({
+        itemId: String(item.itemId || ""),
+        name: String(item.name || "").trim(),
+        price: Number(item.price),
+        quantity: Number(item.quantity),
+        size: item.size,
+        dough: item.dough,
+        ingredients: item.ingredients,
+        image: item.image,
+      }));
+
+      if (normalizedItems.some((item) => !item.itemId || !item.name || !Number.isFinite(item.price) || item.price < 0 || !Number.isInteger(item.quantity) || item.quantity < 1)) {
+        return res.status(400).json({ message: "Invalid cart items" });
+      }
+
+      const subtotal = normalizedItems.reduce(
+        (total, item) => total + item.price * item.quantity,
+        0,
+      );
+      const totalPrice = subtotal + DELIVERY_FEE;
+      const order = await Order.create({
+        user: userId,
+        items: normalizedItems,
+        address,
+        totalPrice,
+        paymentMethod: normalizedPaymentMethod,
+        status: "Order Received",
+        paymentStatus: "Pending",
+        stockDeducted: true,
+      });
+
+
+      return res.status(201).json({
+        message: "Order created successfully",
+        order,
+      });
+    }
+
+    if (!baseId || !sauceId || !cheeseId) {
+      return res.status(400).json({
+        message: "Base, sauce and cheese are required",
       });
     }
 
