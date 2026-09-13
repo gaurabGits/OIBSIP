@@ -1,5 +1,6 @@
 const Order = require("../models/order");
 const Inventory = require("../models/inventory");
+const Pizza = require("../models/pizza");
 const { deductInventory, restoreInventory } = require("../services/inventoryService");
 const StoreSettings = require("../models/storeSettings");
 const DELIVERY_FEE = 60;
@@ -51,18 +52,27 @@ const createOrder = async (req, res) => {
         return res.status(400).json({ message: "Delivery address is required" });
       }
 
-      const normalizedItems = items.map((item) => ({
-        itemId: String(item.itemId || ""),
-        name: String(item.name || "").trim(),
-        price: Number(item.price),
-        quantity: Number(item.quantity),
-        size: item.size,
-        dough: item.dough,
-        ingredients: item.ingredients,
-        ingredientIds: Array.isArray(item.ingredientIds)
-          ? item.ingredientIds
-          : [],
-        image: item.image,
+      const normalizedItems = await Promise.all(items.map(async (item) => {
+        const pizza = item.pizzaId
+          ? await Pizza.findById(item.pizzaId).select("ingredientIds")
+          : null;
+
+        return {
+          itemId: String(item.itemId || ""),
+          pizzaId: item.pizzaId || undefined,
+          name: String(item.name || "").trim(),
+          price: Number(item.price),
+          quantity: Number(item.quantity),
+          size: item.size,
+          dough: item.dough,
+          ingredients: item.ingredients,
+          ingredientIds: pizza
+            ? pizza.ingredientIds
+            : Array.isArray(item.ingredientIds)
+              ? item.ingredientIds
+              : [],
+          image: item.image,
+        };
       }));
 
       if (normalizedItems.some((item) => !item.itemId || !item.name || !Number.isFinite(item.price) || item.price < 0 || !Number.isInteger(item.quantity) || item.quantity < 1)) {

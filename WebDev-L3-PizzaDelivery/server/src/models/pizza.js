@@ -32,6 +32,13 @@ const pizzaSchema = new mongoose.Schema(
             trim: true,
         },
 
+        ingredientIds: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Inventory",
+            },
+        ],
+
         isAvailable: {
             type: Boolean,
             default: true,

@@ -43,6 +43,7 @@ export function CartProvider({ children }) {
         {
           itemId,
           pizzaId: pizza._id,
+          ingredientIds: pizza.ingredientIds || [],
           name: pizza.name,
           image: pizza.image,
           price,

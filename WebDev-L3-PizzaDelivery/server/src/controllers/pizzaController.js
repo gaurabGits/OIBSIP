@@ -49,7 +49,7 @@ const getPizzas = async (req, res) => {
 
 const createPizza = async (req, res) => {
     try {
-        const { name, description, price, image, category } = req.body;
+        const { name, description, price, image, category, ingredientIds = [] } = req.body;
 
         if (!name || !description || price === undefined || price === null || !image || !category) {
             return res.status(400).json({
@@ -63,6 +63,7 @@ const createPizza = async (req, res) => {
             price,
             image,
             category,
+            ingredientIds: Array.isArray(ingredientIds) ? ingredientIds : [],
         });
 
         res.status(201).json({
@@ -102,7 +103,7 @@ const getPizzaById = async (req, res) => {
 
 const updatePizza = async (req, res) => {
     try {
-        const { name, description, price, image, category, isAvailable } = req.body || {};
+        const { name, description, price, image, category, ingredientIds, isAvailable } = req.body || {};
 
         const pizza = await Pizza.findById(req.params.id);
 
@@ -117,6 +118,9 @@ const updatePizza = async (req, res) => {
         pizza.price = price ?? pizza.price;
         pizza.image = image ?? pizza.image;
         pizza.category = category ?? pizza.category;
+        if (ingredientIds !== undefined) {
+            pizza.ingredientIds = Array.isArray(ingredientIds) ? ingredientIds : [];
+        }
         pizza.isAvailable = isAvailable ?? pizza.isAvailable;
 
         const updatedPizza = await pizza.save();

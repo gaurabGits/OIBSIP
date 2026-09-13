@@ -111,13 +111,13 @@ function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    if (activeSection === "orders" && !ordersLoaded) {
+    if (!ordersLoaded) {
       loadOrders();
     }
-  }, [activeSection, ordersLoaded, loadOrders]);
+  }, [ordersLoaded, loadOrders]);
 
   useEffect(() => {
-    if (activeSection !== "orders" || !ordersLoaded) {
+    if (!ordersLoaded) {
       return undefined;
     }
 

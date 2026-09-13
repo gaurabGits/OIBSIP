@@ -190,20 +190,19 @@ const esewaSuccess = async (req, res) => {
       });
     }
 
-    const hasCustomPizzaItems = order.items?.some((item) =>
+    const hasInventoryItems = order.items?.some((item) =>
       item.ingredientIds?.length
     );
-    const isCustomPizzaOrder = Boolean(
+    const hasCustomPizza = Boolean(
       order.pizza?.base && order.pizza?.sauce && order.pizza?.cheese
-    ) || hasCustomPizzaItems;
+    );
 
-    // Deduct custom-pizza ingredients only after payment is complete.
-    if (!order.stockDeducted && isCustomPizzaOrder) {
+    if (!order.stockDeducted && (hasCustomPizza || hasInventoryItems)) {
       await deductInventory(order);
     }
 
     // Mark payment as paid
-    order.stockDeducted = isCustomPizzaOrder;
+    order.stockDeducted = hasCustomPizza || Boolean(hasInventoryItems);
     order.paymentStatus = "Paid";
     order.status = "Order Received";
 
