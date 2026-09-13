@@ -1,7 +1,11 @@
 const Order = require("../models/order");
 const Inventory = require("../models/inventory");
 const Pizza = require("../models/pizza");
-const { deductInventory, restoreInventory } = require("../services/inventoryService");
+const {
+  deductInventory,
+  restoreInventory,
+  validateInventoryAvailability,
+} = require("../services/inventoryService");
 const StoreSettings = require("../models/storeSettings");
 const DELIVERY_FEE = 60;
 const ORDER_STATUS_FLOW = [
@@ -95,6 +99,25 @@ const createOrder = async (req, res) => {
         stockDeducted: false,
       });
 
+      try {
+        await validateInventoryAvailability(order);
+      } catch (error) {
+        await Order.findByIdAndDelete(order._id);
+
+        const isInventoryError = [
+          "INSUFFICIENT_STOCK",
+          "INVALID_INVENTORY_REFERENCE",
+          "INVENTORY_ITEM_NOT_FOUND",
+        ].includes(error.code);
+
+        return res.status(isInventoryError ? 400 : 500).json({
+          message: isInventoryError
+            ? "Unable to create order because an ingredient is unavailable"
+            : "Unable to create order right now",
+          error: error.message,
+        });
+      }
+
       if (normalizedPaymentMethod === "cash") {
         try {
           await deductInventory(order);
@@ -105,8 +128,16 @@ const createOrder = async (req, res) => {
         } catch (error) {
           await Order.findByIdAndDelete(order._id);
 
-          return res.status(400).json({
-            message: "Unable to create order because stock is insufficient",
+          const isInventoryError = [
+            "INSUFFICIENT_STOCK",
+            "INVALID_INVENTORY_REFERENCE",
+            "INVENTORY_ITEM_NOT_FOUND",
+          ].includes(error.code);
+
+          return res.status(isInventoryError ? 400 : 500).json({
+            message: isInventoryError
+              ? "Unable to create order because an ingredient is unavailable"
+              : "Unable to create order right now",
             error: error.message,
           });
         }
@@ -192,6 +223,25 @@ const createOrder = async (req, res) => {
       stockDeducted: false,
     });
 
+    try {
+      await validateInventoryAvailability(order);
+    } catch (error) {
+      await Order.findByIdAndDelete(order._id);
+
+      const isInventoryError = [
+        "INSUFFICIENT_STOCK",
+        "INVALID_INVENTORY_REFERENCE",
+        "INVENTORY_ITEM_NOT_FOUND",
+      ].includes(error.code);
+
+      return res.status(isInventoryError ? 400 : 500).json({
+        message: isInventoryError
+          ? "Unable to create order because an ingredient is unavailable"
+          : "Unable to create order right now",
+        error: error.message,
+      });
+    }
+
     // Cash payment
     if (normalizedPaymentMethod === "cash") {
       try {
@@ -207,8 +257,16 @@ const createOrder = async (req, res) => {
         }
         await Order.findByIdAndDelete(order._id);
 
-        return res.status(400).json({
-          message: "Unable to create order because stock is insufficient",
+        const isInventoryError = [
+          "INSUFFICIENT_STOCK",
+          "INVALID_INVENTORY_REFERENCE",
+          "INVENTORY_ITEM_NOT_FOUND",
+        ].includes(error.code);
+
+        return res.status(isInventoryError ? 400 : 500).json({
+          message: isInventoryError
+            ? "Unable to create order because an ingredient is unavailable"
+            : "Unable to create order right now",
           error: error.message,
         });
       }
@@ -374,6 +432,9 @@ const cancelMyOrder = async (req, res) => {
     }
 
     order.status = "Cancelled";
+    order.cancelledBy = "user";
+    order.cancellationReason = "Cancelled by customer within the 20-minute cancellation window";
+    order.cancelledAt = new Date();
     await order.save();
 
     return res.status(200).json({
@@ -404,6 +465,12 @@ const markCashPaymentPaid = async (req, res) => {
     if (order.paymentMethod !== "cash") {
       return res.status(400).json({
         message: "This order is not a Cash on Delivery order",
+      });
+    }
+
+    if (order.status === "Cancelled") {
+      return res.status(400).json({
+        message: "Cancelled orders cannot be marked as paid",
       });
     }
 

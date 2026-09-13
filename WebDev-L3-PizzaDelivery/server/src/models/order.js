@@ -101,6 +101,17 @@ const orderSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        cancelledBy: {
+            type: String,
+            enum: ["user", "admin", "system"],
+        },
+        cancellationReason: {
+            type: String,
+            trim: true,
+        },
+        cancelledAt: {
+            type: Date,
+        },
         stockDeducted: {
             type: Boolean,
             default: false,

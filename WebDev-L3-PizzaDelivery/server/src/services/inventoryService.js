@@ -33,6 +33,34 @@ const getInventoryEntries = (order) => {
   return Object.entries(quantities);
 };
 
+const validateInventoryAvailability = async (order) => {
+  const inventoryEntries = getInventoryEntries(order);
+
+  for (const [inventoryId, quantity] of inventoryEntries) {
+    if (!mongoose.isValidObjectId(inventoryId)) {
+      const error = new Error(`Invalid inventory item reference: ${inventoryId}`);
+      error.code = "INVALID_INVENTORY_REFERENCE";
+      throw error;
+    }
+
+    const inventoryItem = await Inventory.findById(inventoryId).select("name stock");
+
+    if (!inventoryItem) {
+      const error = new Error(`Inventory item ${inventoryId} was not found`);
+      error.code = "INVENTORY_ITEM_NOT_FOUND";
+      throw error;
+    }
+
+    if (inventoryItem.stock < quantity) {
+      const error = new Error(
+        `Insufficient stock for ${inventoryItem.name}: required ${quantity}, available ${inventoryItem.stock}`
+      );
+      error.code = "INSUFFICIENT_STOCK";
+      throw error;
+    }
+  }
+};
+
 const deductInventory = async (order) => {
   const session = await mongoose.startSession();
 
@@ -42,6 +70,12 @@ const deductInventory = async (order) => {
     const inventoryEntries = getInventoryEntries(order);
 
     for (const [inventoryId, quantity] of inventoryEntries) {
+      if (!mongoose.isValidObjectId(inventoryId)) {
+        const error = new Error(`Invalid inventory item reference: ${inventoryId}`);
+        error.code = "INVALID_INVENTORY_REFERENCE";
+        throw error;
+      }
+
       const updatedItem = await Inventory.findOneAndUpdate(
         {
           _id: inventoryId,
@@ -57,9 +91,16 @@ const deductInventory = async (order) => {
       );
 
       if (!updatedItem) {
-        throw new Error(
-          `Insufficient stock for inventory item ${inventoryId}`
-        );
+        const inventoryItem = await Inventory.findById(inventoryId).session(session);
+        const error = inventoryItem
+          ? new Error(
+              `Insufficient stock for ${inventoryItem.name}: required ${quantity}, available ${inventoryItem.stock}`
+            )
+          : new Error(`Inventory item ${inventoryId} was not found`);
+        error.code = inventoryItem
+          ? "INSUFFICIENT_STOCK"
+          : "INVENTORY_ITEM_NOT_FOUND";
+        throw error;
       }
     }
 
@@ -101,5 +142,6 @@ const restoreInventory = async (order) => {
 
 module.exports = {
   deductInventory,
+  validateInventoryAvailability,
   restoreInventory,
 };

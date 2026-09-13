@@ -173,6 +173,9 @@ const esewaSuccess = async (req, res) => {
       order.paymentStatus = "Failed";
       order.paymentFailureReason = reason;
       order.status = "Cancelled";
+      order.cancelledBy = "system";
+      order.cancellationReason = "Payment failed";
+      order.cancelledAt = new Date();
 
       await order.save();
 
@@ -235,6 +238,9 @@ const esewaFailure = async (req, res) => {
             paymentStatus: "Failed",
             paymentFailureReason: reason,
             status: "Cancelled",
+            cancelledBy: "system",
+            cancellationReason: "Payment failed",
+            cancelledAt: new Date(),
           },
         );
       }
@@ -269,6 +275,9 @@ const esewaFailure = async (req, res) => {
       order.paymentStatus = "Failed";
       order.paymentFailureReason = reason;
       order.status = "Cancelled";
+      order.cancelledBy = "system";
+      order.cancellationReason = "Payment failed";
+      order.cancelledAt = new Date();
 
       await order.save();
     }

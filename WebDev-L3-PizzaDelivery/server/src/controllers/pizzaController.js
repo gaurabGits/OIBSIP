@@ -9,7 +9,12 @@ const getPizzas = async (req, res) => {
         const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
         const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 10));
 
-        const filter = {};
+        const filter = {
+            $or: [
+                { isAvailable: true },
+                { isAvailable: { $exists: false } },
+            ],
+        };
 
         if (search) {
             filter.name = {
@@ -55,6 +60,19 @@ const createPizza = async (req, res) => {
             return res.status(400).json({
                 message: "All fields are required",
             });
+        }
+
+        if (Array.isArray(ingredientIds)) {
+            const uniqueIngredientIds = [...new Set(ingredientIds.map(String))];
+            const ingredientCount = await Inventory.countDocuments({
+                _id: { $in: uniqueIngredientIds },
+            });
+
+            if (ingredientCount !== uniqueIngredientIds.length) {
+                return res.status(400).json({
+                    message: "One or more selected ingredients no longer exist",
+                });
+            }
         }
 
         const pizza = await Pizza.create({
@@ -119,7 +137,19 @@ const updatePizza = async (req, res) => {
         pizza.image = image ?? pizza.image;
         pizza.category = category ?? pizza.category;
         if (ingredientIds !== undefined) {
-            pizza.ingredientIds = Array.isArray(ingredientIds) ? ingredientIds : [];
+            const nextIngredientIds = Array.isArray(ingredientIds) ? ingredientIds : [];
+            const uniqueIngredientIds = [...new Set(nextIngredientIds.map(String))];
+            const ingredientCount = await Inventory.countDocuments({
+                _id: { $in: uniqueIngredientIds },
+            });
+
+            if (ingredientCount !== uniqueIngredientIds.length) {
+                return res.status(400).json({
+                    message: "One or more selected ingredients no longer exist",
+                });
+            }
+
+            pizza.ingredientIds = nextIngredientIds;
         }
         pizza.isAvailable = isAvailable ?? pizza.isAvailable;
 
