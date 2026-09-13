@@ -18,7 +18,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://slicepizzahouse.vercel.app/",
+      "https://pizzaslice4u.vercel.app/",
     ],
     credentials: true,
   })
