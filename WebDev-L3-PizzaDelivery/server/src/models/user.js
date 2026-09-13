@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
-    emailVerificationToken: {
+    emailVerificationCode: {
       type: String,
       select: false,
     },

@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 @import "tailwindcss";
+﻿@import "tailwindcss";
 
 /* ADMIN DASHBOARD */
 .admin-shell {
@@ -81,6 +82,11 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 0;
+}
+
+:target {
+  scroll-margin-top: 0;
 }
 
 * {
@@ -552,6 +558,14 @@ p {
 /* MOBILE */
 
 @media (max-width: 767px) {
+  html {
+    scroll-padding-top: 0;
+  }
+
+  :target {
+    scroll-margin-top: 0;
+  }
+
   .hero-container {
     display: flex;
     flex-direction: column;
@@ -770,3 +784,4 @@ p {
     transition-duration: 0.01ms !important;
   }
 }
+

@@ -2,6 +2,26 @@ const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+const getUsers = async (req, res) => {
+    try {
+        const users = await User.find()
+            .select("fname phone email role isEmailVerified createdAt")
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            count: users.length,
+            users,
+        });
+    } catch (error) {
+        console.error("Get users error:", error);
+
+        res.status(500).json({
+            message: "Could not load users",
+            error: error.message,
+        });
+    }
+};
+
 const adminLogin = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -75,4 +95,5 @@ const adminLogin = async (req, res) => {
 
 module.exports = {
     adminLogin,
+    getUsers,
 };

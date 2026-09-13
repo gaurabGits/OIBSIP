@@ -1,11 +1,20 @@
 import { ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import PizzaCard from './../cart/PizzaCard';
-import { menu } from './../../services/data/menu';
+import { getPizzas } from '../../services/pizzaService';
 
 function MenuSection() {
+    const [menu, setMenu] = useState([]);
+
+    useEffect(() => {
+        getPizzas()
+            .then((response) => setMenu((response.pizzas ?? []).slice(0, 4)))
+            .catch(() => setMenu([]));
+    }, []);
+
     return (
-        <section className="w-full overflow-hidden bg-[#FAF6EF] py-12 sm:py-16 md:py-20">
+        <section id="menu" className="w-full overflow-hidden bg-[#FAF6EF] py-12 sm:py-16 md:py-20">
 
             <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
 
@@ -28,7 +37,7 @@ function MenuSection() {
                 <div className="mt-8 grid min-w-0 grid-cols-1 gap-5 sm:mt-10 sm:grid-cols-2 sm:gap-6 lg:mt-12 lg:grid-cols-4 lg:gap-5 xl:gap-6">
                     {menu.map((pizza) => (
                         <PizzaCard
-                            key={pizza.id}
+                            key={pizza._id}
                             pizza={pizza}
                         />
                     ))}
@@ -64,3 +73,4 @@ function MenuSection() {
 }
 
 export default MenuSection;
+

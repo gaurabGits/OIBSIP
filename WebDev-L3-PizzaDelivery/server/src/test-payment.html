@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>eSewa Test Payment</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f4f1ea;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 2rem 2.25rem;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    h2 {
+      margin: 0 0 1.5rem;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      text-align: center;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #6b6b6b;
+      margin-bottom: -0.5rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid #d9d5c9;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: #333;
+      background: #fafaf7;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    input:focus {
+      border-color: #60bb46;
+    }
+
+    input[readonly] {
+      color: #888;
+    }
+
+    button {
+      margin-top: 0.5rem;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 8px;
+      background: #60bb46;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    button:hover {
+      background: #4fa338;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="card">
+    <h2>eSewa Test Payment</h2>
+
+    <form
+      action="https://rc-epay.esewa.com.np/api/epay/main/v2/form"
+      method="POST"
+    >
+
+      <label for="amount">Amount</label>
+      <input id="amount" name="amount" value="530" />
+
+      <label for="tax_amount">Tax amount</label>
+      <input id="tax_amount" name="tax_amount" value="0" />
+
+      <label for="total_amount">Total amount</label>
+      <input id="total_amount" name="total_amount" value="530" />
+
+      <label for="transaction_uuid">Transaction UUID</label>
+      <input id="transaction_uuid" name="transaction_uuid" value="YOUR_TRANSACTION_UUID" />
+
+      <label for="product_code">Product code</label>
+      <input id="product_code" name="product_code" value="EPAYTEST" />
+
+      <label for="product_service_charge">Service charge</label>
+      <input id="product_service_charge" name="product_service_charge" value="0" />
+
+      <label for="product_delivery_charge">Delivery charge</label>
+      <input id="product_delivery_charge" name="product_delivery_charge" value="0" />
+
+      <label for="success_url">Success URL</label>
+      <input id="success_url" name="success_url" value="http://localhost:5000/api/payment/esewa/success" />
+
+      <label for="failure_url">Failure URL</label>
+      <input id="failure_url" name="failure_url" value="http://localhost:5000/api/payment/esewa/failure" />
+
+      <label for="signed_field_names">Signed field names</label>
+      <input id="signed_field_names" name="signed_field_names" value="total_amount,transaction_uuid,product_code" />
+
+      <label for="signature">Signature</label>
+      <input id="signature" name="signature" value="YOUR_SIGNATURE" />
+
+      <button type="submit">
+        Pay with eSewa
+      </button>
+
+    </form>
+  </div>
+
+</body>
+</html>

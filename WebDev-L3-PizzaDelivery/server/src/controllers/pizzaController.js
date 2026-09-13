@@ -1,16 +1,19 @@
-const Pizza = require("../models/Pizza");
+const Pizza = require("../models/pizza");
 const Inventory = require("../models/inventory");
 
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const getPizzas = async (req, res) => {
     try {
-        const { search, category, page = 1, limit = 10 } = req.query;
+        const { search, category } = req.query;
+        const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+        const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 10));
 
         const filter = {};
 
         if (search) {
             filter.name = {
-                $regex: search,
+                $regex: escapeRegex(search),
                 $options: "i",
             };
         }
@@ -48,7 +51,7 @@ const createPizza = async (req, res) => {
     try {
         const { name, description, price, image, category } = req.body;
 
-        if (!name || !description || !price || !image || !category) {
+        if (!name || !description || price === undefined || price === null || !image || !category) {
             return res.status(400).json({
                 message: "All fields are required",
             });

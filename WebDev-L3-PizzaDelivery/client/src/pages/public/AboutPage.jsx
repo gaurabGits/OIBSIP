@@ -1,6 +1,5 @@
-﻿import {
+import {
   Check,
-  ChefHat,
   CreditCard,
   MapPin,
   PackageCheck,
@@ -41,10 +40,7 @@ function AboutPage() {
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
 
-      {/* Hero */}
       <section className="relative isolate  overflow-hidden text-white">
-
-        {/* Background image */}
         <div
           className="absolute inset-0 -z-20 bg-cover bg-center"
           style={{
@@ -161,7 +157,7 @@ function AboutPage() {
       </section>
 
       {/* Pizza Builder */}
-      <section className="border-y border-border bg-[#F5EFE6]">
+      <section id="faq" className="border-y border-border bg-[#F5EFE6]">
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:px-10 sm:py-16 lg:grid-cols-[0.8fr_1.2fr] lg:gap-24 lg:px-12 lg:py-24">
 
           <div>
@@ -180,7 +176,7 @@ function AboutPage() {
 
             <div>
               <Link
-                to="/menu"
+                to="/custom-pizza"
                 className="mt-10 inline-flex items-center gap-2 font-sans text-sm font-semibold text-[#C1442D] transition-colors hover:text-[#1C1712]"
               >
                 Start building your pizza
@@ -216,7 +212,7 @@ function AboutPage() {
       </section>
 
       {/* Contact */}
-      <section className="mx-auto max-w-6xl px-5 py-14 sm:px-10 sm:py-16 lg:px-12 lg:py-24">
+      <section id="contact" className="mx-auto max-w-6xl px-5 py-14 sm:px-10 sm:py-16 lg:px-12 lg:py-24">
 
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
 
@@ -282,5 +278,6 @@ function AboutPage() {
 }
 
 export default AboutPage
+
 
 

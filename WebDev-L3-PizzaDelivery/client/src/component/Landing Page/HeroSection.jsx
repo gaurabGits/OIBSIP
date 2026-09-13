@@ -1,5 +1,5 @@
 ﻿import { useEffect, useRef, useState } from 'react';
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { ArrowUpRight } from 'lucide-react';
 
 import pizzaImg from '../../assets/images/pizza.png';
@@ -21,13 +21,13 @@ const STAGE = 600;
 const CENTER = STAGE / 2;
 const CIRCLE_SIZE = 540;
 const CIRCLE_RADIUS = CIRCLE_SIZE / 2;
-const PIZZA_SIZE = 500;
 const ITEM_SIZE = 72;
 const ANGLE_STEP = 360 / INGREDIENTS.length;
 const ROTATE_TIME = 1000;
 const PAUSE_TIME = 2800;
 
 function HeroSection() {
+  const navigate = useNavigate();
   const [active, setActive] = useState(0);
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -65,7 +65,7 @@ function HeroSection() {
   const activePosition = getIngredientPosition(active);
 
   return (
-    <section className="hero-section">
+    <section id="hero" className="hero-section">
       <div className="hero-container">
         <div className="hero-content">
           <h1 className="hero-title">
@@ -81,14 +81,19 @@ function HeroSection() {
           </p>
 
           <div className="hero-buttons">
-            <button className="hero-primary-btn">
+            <button
+              className="hero-primary-btn"
+              type="button"
+              onClick={() => navigate('/custom-pizza')}
+            >
               Customize Your Pizza
               <ArrowUpRight size={17} strokeWidth={2.5} />
             </button>
 
-            <Link 
+            <Link
               to="/menu"
-              className="hero-menu-btn">
+              className="hero-menu-btn"
+            >
               View Full Menu
             </Link>
           </div>
@@ -96,7 +101,7 @@ function HeroSection() {
           <div className="hero-stats">
             <div className="hero-stat">
               <b>4.9</b>
-              <span>★ 2k+ reviews</span>
+              <span>â˜… 2k+ reviews</span>
             </div>
 
             <div className="hero-stat">

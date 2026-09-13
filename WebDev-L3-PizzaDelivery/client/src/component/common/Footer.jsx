@@ -1,4 +1,4 @@
-﻿import { MapPin, Phone, Clock } from 'lucide-react'
+import { MapPin, Phone, Clock } from 'lucide-react'
 import { FaFacebookSquare, FaInstagramSquare, FaTwitterSquare} from "react-icons/fa";
 import SystemLogo from '../../assets/icons/SystemLogo';
 import { Link } from 'react-router-dom';
@@ -9,8 +9,8 @@ const shopLinks = [
 ]
 
 const supportLinks = [
-  { label: 'Contact', href: '#contact' },
-  { label: 'FAQs', href: '#faq' },
+  { label: 'Contact', href: '/about#contact' },
+  { label: 'FAQs', href: '/about#faq' },
 ]
 
 function Footer() {
@@ -89,7 +89,7 @@ function Footer() {
         {/* Bottom bar */}
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-[#3a2a1e] pt-6 sm:flex-row">
           <p className="text-xs text-[#6b5c4d]">
-            Â© {new Date().getFullYear()} SliceHouse. All rights reserved.
+            © {new Date().getFullYear()} SliceHouse. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <a href="#" aria-label="Instagram" className="text-[#a89482] hover:text-[#d4a24c]">
@@ -109,4 +109,5 @@ function Footer() {
 }
 
 export default Footer
+
 

@@ -10,10 +10,7 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-const sendVerificationEmail = async (email, token) => {
-    // const verificationUrl = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
-    const verificationUrl = `http://localhost:5000/api/auth/verify-email?token=${token}`;
-
+const sendVerificationEmail = async (email, code) => {
     try {
         await transporter.sendMail({
             from: `"PizzaSlice 🍕" <${process.env.EMAIL_USER}>`,
@@ -22,14 +19,14 @@ const sendVerificationEmail = async (email, token) => {
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 480px; margin: auto; padding: 32px; background: #fff8f0; border-radius: 12px; border: 1px solid #ffe0cc;">
                     <h1 style="color: #e63946; text-align: center; margin-bottom: 8px;">🍕 PizzaSlice</h1>
-                    <h2 style="color: #333; text-align: center; font-size: 20px;">Verify your email</h2>
+                    <h2 style="color: #333; text-align: center; font-size: 20px;">Your verification code</h2>
                     <p style="color: #555; font-size: 15px; line-height: 1.5; text-align: center;">
-                        Thanks for signing up! Click the button below to verify your account. This link expires in <b>15 minutes</b>.
+                        Thanks for signing up! Enter this code in the verification screen. It expires in <b>15 minutes</b>.
                     </p>
                     <div style="text-align: center; margin: 28px 0;">
-                        <a href="${verificationUrl}" style="background: #e63946; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 15px;">
-                            Verify Email
-                        </a>
+                        <span style="display: inline-block; background: #e63946; color: #fff; padding: 14px 24px; border-radius: 8px; font-weight: bold; font-size: 28px; letter-spacing: 8px;">
+                            ${code}
+                        </span>
                     </div>
                     <p style="color: #999; font-size: 12px; text-align: center;">
                         If you didn't create this account, you can safely ignore this email.
@@ -50,7 +47,7 @@ const sendVerificationEmail = async (email, token) => {
 
 
 const sendPasswordResetEmail = async (email, token) => {
-    const resetUrl = `http://localhost:5173/reset-password?token=${token}`;
+    const resetUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/reset-password?token=${token}`;
 
     await transporter.sendMail({
         from: process.env.EMAIL_USER,
@@ -65,7 +62,7 @@ const sendPasswordResetEmail = async (email, token) => {
                 </p>
                 <div style="text-align: center; margin: 28px 0;">
                     <a href="${resetUrl}" style="background: #e63946; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 15px;">
-                        Verify Email
+                        Reset Password
                     </a>
                 </div>
             </div>

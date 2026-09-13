@@ -6,6 +6,8 @@ const pizzaRoutes = require("./routes/pizzaRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const inventoryRoutes = require("./routes/inventoryRoutes");
 const orderRoutes = require("./routes/orderRoutes");
+const paymentRoutes = require("./routes/paymentRouters");
+const storeRoutes = require("./routes/storeRoutes");
 
 
 const app = express();
@@ -19,11 +21,24 @@ app.get("/", (req, res) => {
     });
 });
 
+app.get("/reset-password", (req, res) => {
+    const token = req.query.token;
+
+    if (!token) {
+        return res.redirect(`${process.env.CLIENT_URL || "http://localhost:5173"}/login/forgot-password`);
+    }
+
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    return res.redirect(`${clientUrl}/reset-password?token=${encodeURIComponent(token)}`);
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/pizza", pizzaRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/order", orderRoutes);
+app.use("/api/payment", paymentRoutes);
+app.use("/api/store", storeRoutes);
 
 
 module.exports = app;

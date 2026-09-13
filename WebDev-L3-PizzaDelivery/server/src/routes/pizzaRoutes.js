@@ -10,6 +10,7 @@ const {
 
 const admin = require("../middleware/adminMiddleware");
 const protect = require("../middleware/authMiddleware")
+const user = require("../middleware/userMiddleware");
 
 const router = express.Router();
 
@@ -18,7 +19,7 @@ router.get("/", getPizzas);
 router.get("/:id", getPizzaById);
 
 router.post("/", protect, admin, createPizza);
-router.post("/custom", protect, calculateCustomPizza);
+router.post("/custom", protect, user, calculateCustomPizza);
 
 router.put("/:id", protect, admin, updatePizza);
 router.delete("/:id", protect, admin, deletePizza);
