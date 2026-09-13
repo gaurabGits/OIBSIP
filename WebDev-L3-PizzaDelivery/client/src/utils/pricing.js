@@ -1,4 +1,8 @@
-export const DELIVERY_FEE = 99.00
+export const DELIVERY_FEE = 60
+
+const nprFormatter = new Intl.NumberFormat('en-NP', {
+  maximumFractionDigits: 0,
+})
 
 export const SIZE_SURCHARGES = {
   S: -100,
@@ -11,4 +15,8 @@ export const SIZE_SURCHARGES = {
 
 export function getPizzaPrice(basePrice, size = 'M') {
   return Number(basePrice || 0) + (SIZE_SURCHARGES[size] || 0)
+}
+
+export function formatNpr(value) {
+  return `NRP. ${nprFormatter.format(Number(value) || 0)}`
 }

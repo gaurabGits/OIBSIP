@@ -3,9 +3,10 @@ import { Minus, Plus, ShoppingBag } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import { useCart } from '../../context/CartContext';
-import { getPizzaPrice } from '../../utils/pricing';
+import { formatNpr, getPizzaPrice } from '../../utils/pricing';
 
 const SIZES = ['S', 'M', 'L', 'XL', '2XL', '3XL'];
+const MAX_QUANTITY = 10;
 
 function PizzaCard({ pizza }) {
     const navigate = useNavigate();
@@ -29,8 +30,11 @@ function PizzaCard({ pizza }) {
             return;
         }
 
-        addToCart(pizza, qty, selectedSize);
-        navigate('/cart');
+        const added = addToCart(pizza, qty, selectedSize);
+
+        if (added) {
+            navigate('/cart');
+        }
     };
 
     const selectedPrice = getPizzaPrice(price, selectedSize);
@@ -67,7 +71,7 @@ function PizzaCard({ pizza }) {
 
                     <div className="min-w-0">
                         <p className="min-w-[7rem] whitespace-nowrap text-base font-bold tabular-nums text-[#171717] sm:text-lg md:text-xl">
-                            Rs. {selectedPrice}
+                            {formatNpr(selectedPrice)}
                         </p>
 
                         <div className="mt-1 flex items-center gap-1.5 text-[10px] font-semibold text-black sm:text-xs">
@@ -101,7 +105,7 @@ function PizzaCard({ pizza }) {
                             type="button"
                             aria-label={`Increase quantity of ${name}`}
                             onClick={() =>
-                                setQty((current) => current + 1)
+                                setQty((current) => Math.min(MAX_QUANTITY, current + 1))
                             }
                             className="grid h-full w-7 place-items-center text-black/70 transition hover:text-[#C1442D] hover:bg-[#C1442D]/10 active:scale-90 sm:w-8"
                         >

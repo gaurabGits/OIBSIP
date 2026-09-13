@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useCart } from '../../context/CartContext'
 import { getStoreStatus } from '../../services/adminService'
+import { formatNpr } from '../../utils/pricing'
 
 function CartPage() {
   const navigate = useNavigate()
@@ -48,7 +49,7 @@ function CartPage() {
         <h3 className="truncate text-sm font-bold">{item.name}</h3>
         <p className="mt-1 text-xs font-semibold text-black/45">{item.size} · {item.dough}</p>
         {item.ingredients && <p className="mt-1.5 line-clamp-1 text-xs text-black/40">{item.ingredients}</p>}
-        <p className="mt-2 text-sm font-bold text-[#C1442D]">Rs. {item.price * item.quantity}</p>
+        <p className="mt-2 text-sm font-bold text-[#C1442D]">{formatNpr(item.price * item.quantity)}</p>
       </div>
 
       <div className="flex shrink-0 flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-3">
@@ -137,8 +138,7 @@ function CartPage() {
 
             {!isStoreOpen && (
               <div role="alert" className="mt-4 rounded-xl border border-[#E7A6A0] bg-[#FFE3E0] px-3.5 py-3 text-[#9F2F24]">
-                <p className="text-sm font-bold">Orders are temporarily paused</p>
-                <p className="mt-1 text-xs">The admin has paused new orders. Please check back shortly.</p>
+                <p className="text-sm font-bold">We are busy right now. Please try again in a few hours.</p>
               </div>
             )}
 
@@ -146,15 +146,15 @@ function CartPage() {
               <div className="space-y-2.5 text-sm">
                 <div className="flex justify-between text-black/60">
                   <span>Subtotal</span>
-                  <span>Rs. {subtotal}</span>
+                  <span>{formatNpr(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-black/60">
                   <span>Delivery</span>
-                  <span>Rs. {deliveryFee}</span>
+                  <span>{formatNpr(deliveryFee)}</span>
                 </div>
                 <div className="flex justify-between border-t border-black/10 pt-2.5 text-base font-bold">
                   <span>Total</span>
-                  <span>Rs. {total}</span>
+                  <span>{formatNpr(total)}</span>
                 </div>
               </div>
             </div>

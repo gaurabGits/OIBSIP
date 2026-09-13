@@ -2,11 +2,10 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, Banknote, Lock, MapPin } from 'lucide-react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { SiRazorpay } from 'react-icons/si'
 import api from '../../services/api'
 import { useCart } from '../../context/CartContext'
 import useAuth from '../../hooks/useAuth'
-import { DELIVERY_FEE } from '../../utils/pricing'
+import { DELIVERY_FEE, formatNpr } from '../../utils/pricing'
 import { getStoreStatus } from '../../services/adminService'
 
 const ADDRESS_FIELDS = [
@@ -46,11 +45,6 @@ const PAYMENT_METHODS = [
     value: 'esewa',
     label: 'Pay with eSewa',
     description: 'Secure eSewa test payment',
-  },
-  {
-    value: 'razorpay',
-    label: 'Pay with Razorpay',
-    description: 'Razorpay payment gateway',
   },
 ]
 
@@ -171,10 +165,6 @@ function CheckoutPage() {
     setIsSubmitting(true)
 
     try {
-      if (paymentMethod === 'razorpay') {
-        window.alert('Razorpay payment is not available yet because test API access is unavailable in my region.')
-        return
-      }
 
       const { data } = await api.post('/order', {
         items,
@@ -197,9 +187,11 @@ function CheckoutPage() {
       clearCart()
       navigate('/orders?payment=success')
     } catch (error) {
+      const message = error.response?.data?.message || 'Unable to place your order'
+      const detail = error.response?.data?.error
+
       toast.error(
-        error.response?.data?.message ||
-          'Unable to place your order'
+        detail ? `${message}: ${detail}` : message
       )
     } finally {
       setIsSubmitting(false)
@@ -312,19 +304,16 @@ function CheckoutPage() {
                   const isSelected =
                     paymentMethod === method.value
 
-                  const isCash = method.value === 'cash'
-                  const isRazorpay = method.value === 'razorpay'
+                  const isCash = method.value === 'cash'
 
                   return (
                     <label
                       key={method.value}
-                      className={`${isRazorpay ? 'sm:col-span-2' : ''} flex min-h-[72px] cursor-pointer items-center gap-3 rounded-xl border p-3.5 transition-all ${
+                      className={`flex min-h-[72px] cursor-pointer items-center gap-3 rounded-xl border p-3.5 transition-all ${
                         isSelected
                           ? isCash
                             ? 'border-[#D98B2B] bg-[#FFF7E8] text-[#8A571B] shadow-sm ring-1 ring-[#D98B2B]/20'
-                            : isRazorpay
-                              ? 'border-[#1E90FF] bg-white text-[#0B1F3A] shadow-sm ring-1 ring-[#1E90FF]/20'
-                              : 'border-[#60BB46] bg-[#60BB46]/10 text-[#2E7D20] shadow-sm ring-1 ring-[#60BB46]/20'
+                            : 'border-[#60BB46] bg-[#60BB46]/10 text-[#2E7D20] shadow-sm ring-1 ring-[#60BB46]/20'
                           : 'border-black/10 bg-white hover:border-black/20 hover:bg-black/[0.01]'
                       }`}
                     >
@@ -342,8 +331,6 @@ function CheckoutPage() {
                       {/* Payment Icon */}
                       {isCash ? (
                         <Banknote className="h-5 w-5 shrink-0" />
-                      ) : isRazorpay ? (
-                        <SiRazorpay className="h-7 w-7 shrink-0 text-[#1E90FF]" aria-label="Razorpay" />
                       ) : (
                         <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white p-0.5 shadow-sm ring-1 ring-[#60BB46]/20">
                           <EsewaLogo />
@@ -351,13 +338,8 @@ function CheckoutPage() {
                       )}
 
                       <span className="min-w-0">
-                        <span className={`flex flex-wrap items-center gap-1.5 text-sm font-bold ${isRazorpay ? 'text-[#0B1F3A]' : ''}`}>
+                        <span className="flex flex-wrap items-center gap-1.5 text-sm font-bold">
                           <span>{method.label}</span>
-                          {isRazorpay && (
-                            <span className="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-black/50">
-                              Unavailable
-                            </span>
-                          )}
                         </span>
 
                         <span className="mt-0.5 block text-xs opacity-70">
@@ -378,20 +360,16 @@ function CheckoutPage() {
               className={`mt-7 flex h-12 w-full items-center justify-center rounded-xl text-sm font-bold text-white transition hover:opacity-95 disabled:cursor-wait disabled:opacity-60 ${
                 paymentMethod === 'esewa'
                   ? 'bg-[#60BB46]'
-                  : paymentMethod === 'razorpay'
-                    ? 'bg-[#3395FF]'
-                    : 'bg-gradient-to-r from-[#C1442D] to-[#E1673F]'
+                  : 'bg-gradient-to-r from-[#C1442D] to-[#E1673F]'
               }`}
             >
               {!isStoreOpen
                 ? 'Ordering paused'
                 : isSubmitting
                 ? 'Processing...'
-                : paymentMethod === 'cash'
-                  ? 'Place order'
-                  : paymentMethod === 'esewa'
-                    ? 'Continue to eSewa'
-                    : 'Pay with Razorpay'}
+                : paymentMethod === 'esewa'
+                  ? 'Continue to eSewa'
+                  : 'Place order'}
             </button>
 
 
@@ -429,7 +407,7 @@ function CheckoutPage() {
                   </span>
 
                   <span className="shrink-0 font-medium text-black/70">
-                    Rs. {item.price * item.quantity}
+                    {formatNpr(item.price * item.quantity)}
                   </span>
                 </div>
               ))}
@@ -441,17 +419,17 @@ function CheckoutPage() {
 
                 <div className="flex justify-between text-black/60">
                   <span>Subtotal</span>
-                  <span>Rs. {subtotal}</span>
+                  <span>{formatNpr(subtotal)}</span>
                 </div>
 
                 <div className="flex justify-between text-black/60">
                   <span>Delivery</span>
-                  <span>Rs. {deliveryFee}</span>
+                  <span>{formatNpr(deliveryFee)}</span>
                 </div>
 
                 <div className="flex justify-between border-t border-black/10 pt-3 text-base font-bold text-[#171717]">
                   <span>Total</span>
-                  <span>Rs. {total}</span>
+                  <span>{formatNpr(total)}</span>
                 </div>
 
               </div>
@@ -459,7 +437,7 @@ function CheckoutPage() {
 
             {/* Delivery Note */}
             <p className="mt-auto pt-5 text-center text-xs leading-relaxed text-black/40">
-              Delivery fee is a flat Rs. {DELIVERY_FEE}.
+              Delivery fee is a flat {formatNpr(DELIVERY_FEE)}.
             </p>
           </aside>
         </form>

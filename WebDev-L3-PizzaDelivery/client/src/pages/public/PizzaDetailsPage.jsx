@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { getPizzaById } from '../../services/pizzaService'
 import useAuth from '../../hooks/useAuth'
 import { useCart } from '../../context/CartContext'
-import { getPizzaPrice, SIZE_SURCHARGES } from '../../utils/pricing'
+import { formatNpr, getPizzaPrice, SIZE_SURCHARGES } from '../../utils/pricing'
 
 const SIZES = ['S', 'M', 'L', 'XL', '2XL', '3XL']
 const MAX_QUANTITY = 10
@@ -65,7 +65,11 @@ function PizzaDetailsPage() {
     }
 
     if (isAdded) return
-    addToCart(pizza, quantity, selectedSize)
+
+    const added = addToCart(pizza, quantity, selectedSize)
+
+    if (!added) return
+
     setIsAdded(true)
     window.setTimeout(() => setIsAdded(false), 1800)
   }
@@ -195,9 +199,9 @@ function PizzaDetailsPage() {
 
             <div className="mt-6 flex items-center justify-between gap-4">
               <div>
-                <p className="min-w-32 whitespace-nowrap text-2xl font-bold tabular-nums">Rs. {totalPrice}</p>
+                <p className="min-w-32 whitespace-nowrap text-2xl font-bold tabular-nums">{formatNpr(totalPrice)}</p>
                 <p className="min-h-4 whitespace-nowrap text-xs font-medium text-black/40">
-                  {sizeSurcharge !== 0 && `${sizeSurcharge > 0 ? 'added' : 'save'} Rs. ${sizeSurcharge}`}
+                  {sizeSurcharge !== 0 && `${sizeSurcharge > 0 ? 'added' : 'save'} ${formatNpr(sizeSurcharge)}`}
                 </p>
               </div>
               <div className="flex h-9 items-center overflow-hidden rounded-lg border border-[#C1442D]/15 bg-[#C1442D]/5">

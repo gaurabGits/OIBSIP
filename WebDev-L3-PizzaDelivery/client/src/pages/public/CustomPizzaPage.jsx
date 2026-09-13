@@ -10,6 +10,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom'
 import { getInventory } from '../../services/pizzaService'
 import { useCart } from '../../context/CartContext'
+import { formatNpr } from '../../utils/pricing'
 
 
 
@@ -52,8 +53,7 @@ const ACCENTS = {
   vegetables: '#5B7343',
 }
 
-const formatPrice = (price) =>
-  `Rs. ${Number(price || 0).toLocaleString()}`
+const formatPrice = (price) => formatNpr(price)
 
 
 function StepRail({ currentIndex, isStepDone, onJump }) {

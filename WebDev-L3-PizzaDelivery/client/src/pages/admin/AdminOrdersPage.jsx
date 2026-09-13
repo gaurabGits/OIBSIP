@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  AlertCircle,
   Check,
   ChevronDown,
+  ChevronUp,
+  CreditCard,
   Loader2,
+  Mail,
+  MapPin,
+  Phone,
   RefreshCw,
   Search,
 } from "lucide-react";
@@ -12,6 +18,7 @@ import {
   markCashPaymentPaid,
   updateOrderStatus,
 } from "../../services/adminService";
+import { formatNpr } from "../../utils/pricing";
 
 const ORDER_STATUSES = [
   "Order Received",
@@ -29,8 +36,7 @@ const STATUS_SELECT_STYLES = {
   Cancelled: "border-[#c5221f] bg-[#fce8e6] text-[#c5221f]",
 };
 
-const formatPrice = (value) =>
-  `Rs. ${Number(value || 0).toLocaleString("en-IN")}`;
+const formatPrice = (value) => formatNpr(value);
 
 const formatDate = (value) => {
   const date = new Date(value);
@@ -43,6 +49,23 @@ const formatDate = (value) => {
     hour: "numeric",
     minute: "2-digit",
   });
+};
+
+const getCancellationLabel = (order) => {
+  if (order.cancelledBy === "user") return "Cancelled by customer";
+  if (order.cancelledBy === "admin") return "Cancelled by admin";
+  if (order.cancelledBy === "system") return "Cancelled automatically after payment failure";
+  if (order.paymentStatus === "Failed") return "Cancelled automatically after payment failure";
+  if (order.status === "Cancelled") return "Cancelled by customer or previous system version";
+  return "Not cancelled";
+};
+
+const getPaymentLabel = (order) => {
+  if (order.status === "Cancelled" && order.paymentMethod === "cash") {
+    return `${order.paymentMethod || "Unknown"} · Payment not collected`;
+  }
+
+  return `${order.paymentMethod || "Unknown"} · ${order.paymentStatus || "Unknown"}`;
 };
 
 const getAvailableStatuses = (order) => {
@@ -61,6 +84,7 @@ function AdminOrderPage() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState("");
+  const [expandedIds, setExpandedIds] = useState({});
   const [error, setError] = useState("");
 
   const loadOrders = useCallback(async (silent = false) => {
@@ -130,6 +154,7 @@ function AdminOrderPage() {
             : item
         )
       );
+      window.dispatchEvent(new Event("slicehouse-orders-updated"));
 
       toast.success("Order status updated");
     } catch (error) {
@@ -165,6 +190,13 @@ function AdminOrderPage() {
     } finally {
       setUpdatingId("");
     }
+  };
+
+  const toggleOrder = (id) => {
+    setExpandedIds((current) => ({
+      ...current,
+      [id]: !current[id],
+    }));
   };
 
   return (
@@ -240,13 +272,27 @@ function AdminOrderPage() {
           const isPaid = order.paymentStatus === "Paid";
           const isCash = order.paymentMethod === "cash";
           const isKitchen = order.status === "In Kitchen";
+          const isExpanded = Boolean(expandedIds[order._id]);
+          const orderItems = order.items?.length
+            ? order.items
+            : [
+                order.pizza?.base,
+                order.pizza?.sauce,
+                order.pizza?.cheese,
+                ...(order.pizza?.vegetables || []),
+              ].filter(Boolean);
 
           return (
             <article
               key={order._id}
-              className="rounded-xl border border-[#eee5d9] bg-white p-5 shadow-sm"
+              className="rounded-xl border border-[#eee5d9] bg-white p-4 shadow-sm sm:p-5"
             >
-              <div className="flex flex-wrap items-start justify-between gap-4">
+              <button
+                type="button"
+                onClick={() => toggleOrder(order._id)}
+                className="grid w-full grid-cols-[minmax(0,1fr)_24px] gap-3 text-left sm:grid-cols-[minmax(0,1fr)_auto_24px] sm:items-start sm:gap-5"
+                aria-expanded={isExpanded}
+              >
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wider text-[#c1442d]">
                     Order #{String(order._id).slice(-8)}
@@ -264,7 +310,7 @@ function AdminOrderPage() {
                   </p>
                 </div>
 
-                <div className="text-right">
+                <div className="col-start-1 row-start-2 min-w-0 text-left sm:col-start-2 sm:row-start-1 sm:text-right">
                   <p className="text-lg font-black text-[#1c1712]">
                     {formatPrice(order.totalPrice)}
                   </p>
@@ -278,18 +324,94 @@ function AdminOrderPage() {
                   >
                     {isCancelled
                       ? "Cancelled"
-                      : `${order.paymentMethod} · ${order.paymentStatus}`}
+                      : getPaymentLabel(order)}
                   </p>
                 </div>
-              </div>
+                {isExpanded ? (
+                  <ChevronUp className="h-5 w-5 shrink-0 text-[#806f60]" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 shrink-0 text-[#806f60]" />
+                )}
+              </button>
 
-              <div className="mt-5 grid gap-4 border-t border-[#f1e9df] pt-4 lg:grid-cols-[minmax(0,1fr)_220px_180px]">
-                <div>
+              {isExpanded && (
+                <div className="mt-5 grid gap-4 border-t border-[#f1e9df] pt-4 md:grid-cols-2">
+                  <InfoPanel title="Customer">
+                    <InfoLine icon={Mail} value={order.user?.email || "No email"} />
+                    <InfoLine icon={Phone} value={order.user?.phone || order.address?.phone || "No phone"} />
+                  </InfoPanel>
+
+                  <InfoPanel title="Delivery address">
+                    <InfoLine icon={MapPin} value={order.address?.fullName || "No recipient name"} />
+                    <p className="wrap-break-word pl-6 text-sm text-[#5c4f42]">
+                      {order.address?.line || "No address"}
+                      {order.address?.city ? `, ${order.address.city}` : ""}
+                    </p>
+                  </InfoPanel>
+
+                  <InfoPanel title="Payment">
+                    <InfoLine
+                      icon={CreditCard}
+                      value={getPaymentLabel(order)}
+                    />
+                    {order.transactionUuid && (
+                      <p className="pl-6 text-xs text-[#806f60]">
+                        Transaction: {order.transactionUuid}
+                      </p>
+                    )}
+                    {order.paymentFailureReason && (
+                      <p className="mt-2 flex gap-2 text-sm font-semibold text-[#c5221f]">
+                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                        Failed: {order.paymentFailureReason}
+                      </p>
+                    )}
+                  </InfoPanel>
+
+                  <InfoPanel title="Order history">
+                    <p className="text-sm text-[#5c4f42]">
+                      Placed {formatDate(order.createdAt)}
+                    </p>
+                    <p className={`mt-1 text-sm font-semibold ${isCancelled ? "text-[#c5221f]" : "text-[#5c4f42]"}`}>
+                      {isCancelled
+                        ? `${getCancellationLabel(order)}${order.cancelledAt ? ` on ${formatDate(order.cancelledAt)}` : ""}`
+                        : order.status === "Order Received"
+                          ? "Cancellation available to customer for 20 minutes"
+                          : "Cancellation closed after kitchen handoff"}
+                    </p>
+                    {!isCancelled && order.status === "Order Received" && (
+                      <p className="mt-1 text-xs text-[#806f60]">
+                        Admin cannot cancel orders. Only the signed-in customer can cancel their own order.
+                      </p>
+                    )}
+                  </InfoPanel>
+
+                  <div className="md:col-span-2">
+                    <p className="mb-2 text-xs font-bold uppercase tracking-wider text-[#806f60]">
+                      Full item list
+                    </p>
+                    <div className="divide-y divide-[#f1e9df] rounded-lg border border-[#f1e9df]">
+                      {orderItems.length ? orderItems.map((item, index) => (
+                        <div key={`${item._id || item.itemId || item.name}-${index}`} className="flex min-w-0 flex-wrap justify-between gap-2 px-3 py-2 text-sm">
+                          <span className="wrap-break-word font-semibold text-[#1c1712]">
+                            {item.name || "Custom ingredient"} x{item.quantity || 1}
+                          </span>
+                          <span className="text-[#806f60]">
+                            {item.price !== undefined ? formatPrice(item.price * (item.quantity || 1)) : "Included"}
+                          </span>
+                        </div>
+                      )) : <p className="px-3 py-3 text-sm text-[#806f60]">No item details recorded.</p>}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-5 grid gap-4 border-t border-[#f1e9df] pt-4 lg:grid-cols-[minmax(0,1fr)_220px_180px] lg:items-end">
+                <div className="min-w-0">
                   <p className="mb-2 text-xs font-bold uppercase tracking-wider text-[#806f60]">
                     Items
                   </p>
 
-                  <p className="text-sm text-[#5c4f42]">
+                  <p className="wrap-break-word text-sm text-[#5c4f42]">
                     {order.items?.length
                       ? order.items
                           .map(
@@ -327,22 +449,22 @@ function AdminOrderPage() {
 
                 <div>
                   {isCancelled ? (
-                    <div className="mt-6 flex h-10 items-center justify-center rounded-lg bg-[#fce8e6] px-3 text-xs font-bold text-[#c5221f]">
+                    <div className="flex h-10 items-center justify-center rounded-lg bg-[#fce8e6] px-3 text-xs font-bold text-[#c5221f] lg:mt-6">
                       Cancelled
                     </div>
                   ) : isPaid ? (
-                    <div className="mt-6 flex h-10 items-center justify-center rounded-lg bg-[#e8f3e8] px-3 text-xs font-bold text-[#27663a]">
+                    <div className="flex h-10 items-center justify-center rounded-lg bg-[#e8f3e8] px-3 text-xs font-bold text-[#27663a] lg:mt-6">
                       Paid
                     </div>
                   ) : isKitchen ? (
-                    <div className="mt-6 flex h-10 items-center justify-center rounded-lg bg-[#fdf3dd] px-3 text-xs font-bold text-[#9a6a35]">
+                    <div className="flex h-10 items-center justify-center rounded-lg bg-[#fdf3dd] px-3 text-xs font-bold text-[#9a6a35] lg:mt-6">
                       Kitchen started
                     </div>
                   ) : isCash ? (
                     <button
                       onClick={() => markPaid(order)}
                       disabled={isUpdating}
-                      className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg border border-[#c1442d] px-3 py-2 text-sm font-bold text-[#c1442d] hover:bg-[#fff0df] disabled:opacity-60"
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#c1442d] px-3 py-2 text-sm font-bold text-[#c1442d] hover:bg-[#fff0df] disabled:opacity-60 lg:mt-6"
                     >
                       {isUpdating ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -352,7 +474,7 @@ function AdminOrderPage() {
                       Mark paid
                     </button>
                   ) : (
-                    <div className="mt-6 flex h-10 items-center justify-center rounded-lg bg-[#fdf3dd] px-3 text-xs font-bold text-[#9a6a35]">
+                    <div className="flex h-10 items-center justify-center rounded-lg bg-[#fdf3dd] px-3 text-xs font-bold text-[#9a6a35] lg:mt-6">
                       Payment {order.paymentStatus}
                     </div>
                   )}
@@ -369,6 +491,26 @@ function AdminOrderPage() {
         )}
       </div>
     </section>
+  );
+}
+
+function InfoPanel({ title, children }) {
+  return (
+    <div className="rounded-lg bg-[#fffaf5] p-3">
+      <p className="mb-2 text-xs font-bold uppercase tracking-wider text-[#806f60]">
+        {title}
+      </p>
+      {children}
+    </div>
+  );
+}
+
+function InfoLine({ icon: Icon, value }) {
+  return (
+    <p className="flex items-center gap-2 text-sm text-[#5c4f42]">
+      <Icon className="h-4 w-4 shrink-0 text-[#c1442d]" />
+      <span className="break-all">{value}</span>
+    </p>
   );
 }
 

@@ -1,4 +1,9 @@
-import { createContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 import {
   loginUser,
@@ -8,13 +13,17 @@ import {
   logoutUser,
 } from "../features/authService";
 
-export const AuthContext = createContext();
+export const AuthContext = createContext(null);
 
+// Get saved user from localStorage
 const getStoredUser = () => {
   try {
     const storedUser = localStorage.getItem("user");
+
     return storedUser ? JSON.parse(storedUser) : null;
-  } catch {
+  } catch (error) {
+    console.error("Failed to read stored user:", error);
+
     localStorage.removeItem("user");
     return null;
   }
@@ -27,7 +36,7 @@ export const AuthProvider = ({ children }) => {
   );
   const [loading, setLoading] = useState(true);
 
-  // Check authentication when application starts
+  // Check if the saved token is still valid
   useEffect(() => {
     const checkAuth = async () => {
       const storedToken = localStorage.getItem("token");
@@ -47,7 +56,10 @@ export const AuthProvider = ({ children }) => {
           JSON.stringify(data.user)
         );
       } catch (error) {
-        console.error("Authentication check failed:", error);
+        console.error(
+          "Authentication check failed:",
+          error
+        );
 
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -62,7 +74,7 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  // Login
+  // Normal user login
   const login = async (credentials) => {
     const data = await loginUser(credentials);
 
@@ -70,7 +82,9 @@ export const AuthProvider = ({ children }) => {
     const loggedInUser = data.user;
 
     if (!newToken || !loggedInUser) {
-      throw new Error("Login response was incomplete");
+      throw new Error(
+        "Login response was incomplete"
+      );
     }
 
     localStorage.setItem("token", newToken);
@@ -79,59 +93,80 @@ export const AuthProvider = ({ children }) => {
       JSON.stringify(loggedInUser)
     );
 
-    setUser(loggedInUser);
     setToken(newToken);
+    setUser(loggedInUser);
 
     return data;
   };
 
+  // Admin login
   const adminLogin = async (credentials) => {
     const data = await loginAdmin(credentials);
+
     const loggedInUser = data.admin;
 
     if (!data.token || !loggedInUser) {
-      throw new Error("Admin login response was incomplete");
+      throw new Error(
+        "Admin login response was incomplete"
+      );
     }
 
     localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(loggedInUser));
-    setUser(loggedInUser);
+    localStorage.setItem(
+      "user",
+      JSON.stringify(loggedInUser)
+    );
+
     setToken(data.token);
+    setUser(loggedInUser);
 
     return data;
   };
 
-  // Register
+  // Registration
   const register = async (userData) => {
     const data = await registerUser(userData);
 
     return data;
   };
 
+  // Called after email verification
   const completeVerification = (data) => {
     if (!data?.token || !data?.user) {
-      throw new Error("Verification response was incomplete");
+      throw new Error(
+        "Verification response was incomplete"
+      );
     }
 
     localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem(
+      "user",
+      JSON.stringify(data.user)
+    );
+
     setToken(data.token);
     setUser(data.user);
   };
 
   // Logout
   const logout = () => {
-    logoutUser();
+    try {
+      logoutUser();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
 
-    setUser(null);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
     setToken(null);
+    setUser(null);
   };
 
   const value = {
     user,
     token,
     loading,
-
     isAuthenticated: !!token,
 
     login,
@@ -146,4 +181,17 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
+};
+
+// Custom hook for accessing authentication
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error(
+      "useAuth must be used within an AuthProvider"
+    );
+  }
+
+  return context;
 };

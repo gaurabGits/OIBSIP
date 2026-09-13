@@ -51,7 +51,13 @@ export const routes = [
 
   {
     path: "/cart",
-    element: <CartPage />,
+    element: <ProtectedRoute />,
+    children: [
+      {
+        index: true,
+        element: <CartPage />,
+      },
+    ],
   },
 
   {

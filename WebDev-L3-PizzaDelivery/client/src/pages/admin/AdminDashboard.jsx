@@ -14,6 +14,7 @@ import {
   getAdminInventory,
   getAllOrders,
 } from "../../services/adminService";
+import { formatNpr } from "../../utils/pricing";
 
 const STATUS_TEXT_STYLES = {
   "Order Received": "text-[#c1442d]",
@@ -23,9 +24,7 @@ const STATUS_TEXT_STYLES = {
   Cancelled: "text-[#c5221f]",
 };
 
-const formatPrice = (value) => {
-  return `Rs. ${Number(value || 0).toLocaleString("en-IN")}`;
-};
+const formatPrice = (value) => formatNpr(value);
 
 const formatDate = (value) => {
   const date = new Date(value);

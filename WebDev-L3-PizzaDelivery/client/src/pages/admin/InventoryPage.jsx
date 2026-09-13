@@ -1,15 +1,18 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Check,
+  ChevronDown,
+  ChevronUp,
   Loader2,
   Package,
   RefreshCw,
+  Save,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import {
   getAdminInventory,
   updateInventoryItem,
 } from "../../services/adminService";
+import { formatNpr } from "../../utils/pricing";
 
 const CATEGORY_LABELS = {
   base: "Pizza Bases",
@@ -22,7 +25,9 @@ function InventoryPage() {
   const [items, setItems] = useState([]);
   const [drafts, setDrafts] = useState({});
   const [loading, setLoading] = useState(true);
-  const [savingId, setSavingId] = useState("");
+  const [savingCategory, setSavingCategory] = useState("");
+  const [expandedCategories, setExpandedCategories] = useState({});
+  const categoryRefs = useRef({});
   const [error, setError] = useState("");
 
   const loadInventory = async (silent = false) => {
@@ -37,16 +42,19 @@ function InventoryPage() {
 
       setItems(inventory);
 
-      const newDrafts = {};
+      setDrafts((current) => {
+        const newDrafts = {};
 
-      inventory.forEach((item) => {
-        newDrafts[item._id] = {
-          stock: item.stock,
-          threshold: item.lowStockThreshold ?? 20,
-        };
+        inventory.forEach((item) => {
+          newDrafts[item._id] = current[item._id] || {
+            price: item.price,
+            stock: item.stock,
+            threshold: item.lowStockThreshold ?? 20,
+          };
+        });
+
+        return newDrafts;
       });
-
-      setDrafts(newDrafts);
     } catch (error) {
       setError(
         error?.response?.data?.message ||
@@ -85,57 +93,106 @@ function InventoryPage() {
     (group) => group.items.length > 0
   ).length;
 
-  const saveItem = async (item) => {
-    const draft = drafts[item._id];
+  const getChangedItems = (sourceItems) => {
+    return sourceItems.filter((item) => {
+      const draft = drafts[item._id] || {};
 
-    const stock = Number(draft?.stock);
-    const threshold = Number(draft?.threshold);
-
-    if (
-      !Number.isInteger(stock) ||
-      stock < 0 ||
-      !Number.isInteger(threshold) ||
-      threshold < 0
-    ) {
-      toast.error(
-        "Stock and threshold must be whole numbers of 0 or more."
+      return (
+        Number(draft.price) !== Number(item.price) ||
+        Number(draft.stock) !== Number(item.stock) ||
+        Number(draft.threshold) !==
+          Number(item.lowStockThreshold ?? 20)
       );
-      return;
-    }
+    });
+  };
 
-    setSavingId(item._id);
+  const toggleCategory = (category) => {
+    setExpandedCategories((current) => ({
+      [category]: !current[category],
+    }));
+  };
+
+  useEffect(() => {
+    const openCategory = Object.keys(expandedCategories).find(
+      (category) => expandedCategories[category]
+    );
+
+    if (openCategory) {
+      categoryRefs.current[openCategory]?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [expandedCategories]);
+
+  const saveChanges = async (sourceItems, category) => {
+    const itemsToSave = getChangedItems(sourceItems);
+
+    if (itemsToSave.length === 0) return;
+
+    setSavingCategory(category);
 
     try {
-      const data = await updateInventoryItem(item._id, {
-        stock,
-        lowStockThreshold: threshold,
+      const updates = itemsToSave.map((item) => {
+        const draft = drafts[item._id] || {};
+        const price = Number(draft.price);
+        const stock = Number(draft.stock);
+        const threshold = Number(draft.threshold);
+
+        if (
+          !Number.isFinite(price) ||
+          price < 0 ||
+          !Number.isInteger(stock) ||
+          stock < 0 ||
+          !Number.isInteger(threshold) ||
+          threshold < 0
+        ) {
+          throw new Error(
+            "Price must be 0 or more. Stock and threshold must be whole numbers of 0 or more."
+          );
+        }
+
+        return updateInventoryItem(item._id, {
+          price,
+          stock,
+          lowStockThreshold: threshold,
+        });
       });
 
-      setItems((current) =>
-        current.map((currentItem) =>
-          currentItem._id === item._id
-            ? data.inventory
-            : currentItem
-        )
+      const responses = await Promise.all(updates);
+      const updatedItems = responses.map((response) => response.inventory);
+      const updatedById = Object.fromEntries(
+        updatedItems.map((item) => [item._id, item])
       );
 
-      setDrafts((current) => ({
-        ...current,
-        [item._id]: {
-          stock: data.inventory.stock,
-          threshold:
-            data.inventory.lowStockThreshold ?? 20,
-        },
-      }));
+      setItems((current) =>
+        current.map((item) => updatedById[item._id] || item)
+      );
+      setDrafts((current) => {
+        const next = { ...current };
 
-      toast.success(`${item.name} updated`);
+        updatedItems.forEach((item) => {
+          next[item._id] = {
+            price: item.price,
+            stock: item.stock,
+            threshold: item.lowStockThreshold ?? 20,
+          };
+        });
+
+        return next;
+      });
+
+      toast.success(
+        `${updatedItems.length} inventory ${updatedItems.length === 1 ? "item" : "items"} saved`
+      );
     } catch (error) {
       toast.error(
         error?.response?.data?.message ||
+          error?.message ||
           "Could not update inventory."
       );
     } finally {
-      setSavingId("");
+      setSavingCategory("");
     }
   };
 
@@ -168,15 +225,15 @@ function InventoryPage() {
 
         <button
           onClick={loadInventory}
-          disabled={loading}
+          disabled={loading || Boolean(savingCategory)}
           className="inline-flex items-center gap-2 rounded-lg border border-[#eadfd2] bg-white px-4 py-2 text-sm font-bold text-[#5c4f42] shadow-sm hover:border-[#c1442d] disabled:opacity-60"
         >
-          <RefreshCw
-            className={`h-4 w-4 ${
-              loading ? "animate-spin" : ""
-            }`}
-          />
-          Refresh
+            <RefreshCw
+              className={`h-4 w-4 ${
+                loading ? "animate-spin" : ""
+              }`}
+            />
+            Refresh
         </button>
       </div>
 
@@ -208,9 +265,24 @@ function InventoryPage() {
         {groupedItems.map((group) => (
           <div
             key={group.category}
+            ref={(element) => {
+              categoryRefs.current[group.category] = element;
+            }}
             className="overflow-hidden rounded-xl border border-[#eee5d9] bg-white shadow-sm"
           >
-            <div className="flex items-center gap-3 border-b border-[#f1e9df] px-5 py-4">
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => toggleCategory(group.category)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  toggleCategory(group.category);
+                }
+              }}
+              className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-[#fffaf5]"
+              aria-expanded={Boolean(expandedCategories[group.category])}
+            >
               <div className="grid h-9 w-9 place-items-center rounded-lg bg-[#fff0df] text-[#c1442d]">
                 <Package className="h-4 w-4" />
               </div>
@@ -227,9 +299,36 @@ function InventoryPage() {
                     : "items"}
                 </p>
               </div>
+              <span className="ml-auto flex items-center gap-3">
+                {getChangedItems(group.items).length > 0 && (
+                  <span className="text-xs font-bold text-[#c1442d]">
+                    {getChangedItems(group.items).length} changed
+                  </span>
+                )}
+
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    saveChanges(group.items, group.category);
+                  }}
+                  disabled={Boolean(savingCategory) || getChangedItems(group.items).length === 0}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[#c1442d] px-3 text-xs font-bold text-[#c1442d] hover:bg-[#fff0df] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {savingCategory === group.category ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                  Update
+                </button>
+
+                {expandedCategories[group.category] ? (
+                  <ChevronUp className="h-5 w-5" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" />
+                )}
+              </span>
             </div>
 
-            <div className="divide-y divide-[#f1e9df]">
+            {expandedCategories[group.category] && (
+              <div className="divide-y divide-[#f1e9df] border-t border-[#f1e9df]">
               {group.items.map((item) => {
                 const draft = drafts[item._id] || {};
 
@@ -237,12 +336,12 @@ function InventoryPage() {
                   Number(item.stock) <=
                   Number(item.lowStockThreshold ?? 20);
 
-                const isSaving = savingId === item._id;
-
                 return (
                   <div
                     key={item._id}
-                    className="grid gap-4 px-5 py-5 lg:grid-cols-[minmax(0,1fr)_150px_150px_110px] lg:items-end"
+                    className={`grid gap-4 px-5 py-5 lg:grid-cols-[minmax(0,1fr)_130px_130px_130px] lg:items-end ${
+                      isLow ? "bg-[#fff8f0]" : "bg-white"
+                    }`}
                   >
                     <div>
                       <p className="font-bold text-[#1c1712]">
@@ -250,7 +349,11 @@ function InventoryPage() {
                       </p>
 
                       <p className="mt-2 text-sm font-bold text-[#1c1712]">
-                        Available: {item.stock}
+                        Available: {item.stock} units
+                      </p>
+
+                      <p className="mt-1 text-sm text-[#5c4f42]">
+                        Current price: {formatNpr(item.price)}
                       </p>
 
                       <p
@@ -265,6 +368,14 @@ function InventoryPage() {
                           : "Stock level is good"}
                       </p>
                     </div>
+
+                    <Field
+                      label="Price (NPR)"
+                      value={draft.price}
+                      onChange={(value) =>
+                        updateDraft(item._id, "price", value)
+                      }
+                    />
 
                     <Field
                       label="Stock"
@@ -290,19 +401,6 @@ function InventoryPage() {
                       }
                     />
 
-                    <button
-                      onClick={() => saveItem(item)}
-                      disabled={isSaving}
-                      className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#c1442d] px-3 text-sm font-bold text-white hover:bg-[#a93624] disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {isSaving ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Check className="h-4 w-4" />
-                      )}
-
-                      Save
-                    </button>
                   </div>
                 );
               })}
@@ -312,7 +410,8 @@ function InventoryPage() {
                   No items in this category.
                 </p>
               )}
-            </div>
+              </div>
+            )}
           </div>
         ))}
       </div>

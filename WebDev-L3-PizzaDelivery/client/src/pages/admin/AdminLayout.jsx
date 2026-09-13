@@ -14,13 +14,17 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import useAuth from "../../hooks/useAuth";
-import { getStoreStatus, updateStoreStatus } from "../../services/adminService";
+import {
+  getAllOrders,
+  getStoreStatus,
+  updateStoreStatus,
+} from "../../services/adminService";
 
 const STORE_STATUS_KEY = import.meta.env.VITE_STORE_STATUS_KEY;
 
 const NAV_ITEMS = [
   { label: "Dashboard", to: "/admin/dashboard", icon: LayoutDashboard },
-  { label: "Orders", to: "/admin/orders", icon: ShoppingBag, badge: "12" },
+  { label: "Orders", to: "/admin/orders", icon: ShoppingBag },
   { label: "Inventory", to: "/admin/inventory", icon: Package },
   { label: "Users", to: "/admin/users", icon: Users },
 ];
@@ -33,6 +37,7 @@ export function AdminLayout() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [storeStatusLoading, setStoreStatusLoading] = useState(true);
+  const [newOrderCount, setNewOrderCount] = useState(0);
 
   const profileRef = useRef(null);
   const location = useLocation();
@@ -72,6 +77,35 @@ export function AdminLayout() {
 
     return () => {
       mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadNewOrderCount = async () => {
+      try {
+        const data = await getAllOrders();
+        const orders = Array.isArray(data?.orders) ? data.orders : [];
+
+        if (mounted) {
+          setNewOrderCount(
+            orders.filter((order) => order.status === "Order Received").length
+          );
+        }
+      } catch {
+        // Keep the last known count when the background refresh fails.
+      }
+    };
+
+    loadNewOrderCount();
+    const interval = setInterval(loadNewOrderCount, 15000);
+    window.addEventListener("slicehouse-orders-updated", loadNewOrderCount);
+
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+      window.removeEventListener("slicehouse-orders-updated", loadNewOrderCount);
     };
   }, []);
 
@@ -165,9 +199,9 @@ export function AdminLayout() {
                           <Icon className={`h-5 w-5 flex-shrink-0 ${isActive ? "text-amber-400" : ""}`} />
                           {!isCollapsed && <span className="truncate">{item.label}</span>}
                         </span>
-                        {item.badge && !isCollapsed && (
+                        {item.label === "Orders" && newOrderCount > 0 && !isCollapsed && (
                           <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-bold text-slate-900">
-                            {item.badge}
+                            {newOrderCount}
                           </span>
                         )}
                       </>

@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import { getMyOrders } from "../../services/orderService";
 import useAuth from "../../hooks/useAuth";
 import { useCart } from "../../context/CartContext";
+import { formatNpr } from "../../utils/pricing";
 
 const MAX_ITEM_QUANTITY = 10;
 const NAV_ITEMS = [
@@ -25,14 +26,13 @@ const NAV_ITEMS = [
 ];
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });
-const priceFormatter = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 });
 
 const formatDate = (value) => {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? "—" : dateFormatter.format(date);
 };
 
-const formatPrice = (value) => `Rs. ${priceFormatter.format(Number(value) || 0)}`;
+const formatPrice = (value) => formatNpr(value);
 
 const formatRole = (role) => {
   const value = String(role || "user").trim();
