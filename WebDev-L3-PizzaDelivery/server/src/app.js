@@ -14,14 +14,11 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(
-  cors({
-    origin: [
-      "*",
-    ],
-    credentials: true,
-  })
-);
+
+app.use(cors({
+   origin: "*"
+}));
+
 
 app.get("/", (req, res) => {
     res.json({
