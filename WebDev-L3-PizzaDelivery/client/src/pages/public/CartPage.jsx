@@ -1,6 +1,9 @@
+import { useEffect, useState } from 'react'
 import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { useCart } from '../../context/CartContext'
+import { getStoreStatus } from '../../services/adminService'
 
 function CartPage() {
   const navigate = useNavigate()
@@ -8,6 +11,28 @@ function CartPage() {
   const customItems = items.filter((item) => item.isCustom)
   const regularItems = items.filter((item) => !item.isCustom)
   const total = subtotal + deliveryFee
+  const [isStoreOpen, setIsStoreOpen] = useState(true)
+
+  useEffect(() => {
+    const syncStoreStatus = async () => {
+      try {
+        const data = await getStoreStatus()
+        setIsStoreOpen(data.isOpen !== false)
+      } catch {
+        setIsStoreOpen(true)
+      }
+    }
+
+    syncStoreStatus()
+    const statusInterval = window.setInterval(syncStoreStatus, 5000)
+
+    window.addEventListener('slicehouse-store-status', syncStoreStatus)
+
+    return () => {
+      window.clearInterval(statusInterval)
+      window.removeEventListener('slicehouse-store-status', syncStoreStatus)
+    }
+  }, [])
 
   const renderItem = (item) => (
     <article key={item.itemId} className="flex gap-4 rounded-xl border border-black/5 bg-[#FAF6EF] p-4 sm:items-center">
@@ -107,8 +132,15 @@ function CartPage() {
           </section>
 
           {/* Right: summary */}
-          <aside className="flex flex-col bg-[#FAF6EF] px-6 py-8 sm:px-7 sm:py-9">
+          <aside className={`flex flex-col px-6 py-8 sm:px-7 sm:py-9 ${isStoreOpen ? 'bg-[#FAF6EF]' : 'bg-[#FFF1F0]'}`}>
             <h2 className="font-serif text-2xl font-semibold">Order summary</h2>
+
+            {!isStoreOpen && (
+              <div role="alert" className="mt-4 rounded-xl border border-[#E7A6A0] bg-[#FFE3E0] px-3.5 py-3 text-[#9F2F24]">
+                <p className="text-sm font-bold">Orders are temporarily paused</p>
+                <p className="mt-1 text-xs">The admin has paused new orders. Please check back shortly.</p>
+              </div>
+            )}
 
             <div className="mt-4 rounded-2xl bg-white p-4 shadow-sm">
               <div className="space-y-2.5 text-sm">
@@ -131,11 +163,19 @@ function CartPage() {
 
             <button
               type="button"
-              onClick={() => navigate('/checkout')}
-              className="mt-auto flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#C1442D] to-[#E1673F] text-sm font-bold text-white transition hover:opacity-95"
+              onClick={() => {
+                if (!isStoreOpen) {
+                  toast.error('New orders are currently paused by the admin.')
+                  return
+                }
+
+                navigate('/checkout')
+              }}
+              disabled={!isStoreOpen}
+              className="mt-auto flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#C1442D] to-[#E1673F] text-sm font-bold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ShoppingBag className="h-4 w-4" />
-              Checkout
+              {isStoreOpen ? 'Checkout' : 'Ordering paused'}
             </button>
 
             <Link to="/menu" className="mt-4 text-center text-sm font-bold text-[#C1442D]">

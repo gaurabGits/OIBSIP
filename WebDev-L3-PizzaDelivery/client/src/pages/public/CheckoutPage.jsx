@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, Banknote, Lock, MapPin } from 'lucide-react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { SiRazorpay } from 'react-icons/si'
 import api from '../../services/api'
 import { useCart } from '../../context/CartContext'
 import useAuth from '../../hooks/useAuth'
@@ -13,13 +14,13 @@ const ADDRESS_FIELDS = [
     name: 'fullName',
     label: 'Full name',
     type: 'text',
-    placeholder: 'John Smith',
+    placeholder: 'Gaurab Bishwakarma',
   },
   {
     name: 'phone',
     label: 'Phone number',
     type: 'tel',
-    placeholder: '98XXXXXXXX',
+    placeholder: '97XXXXXXXX',
   },
   {
     name: 'line',
@@ -31,7 +32,7 @@ const ADDRESS_FIELDS = [
     name: 'city',
     label: 'City',
     type: 'text',
-    placeholder: 'Lalitpur',
+    placeholder: 'Kathmandu',
   },
 ]
 
@@ -46,21 +47,20 @@ const PAYMENT_METHODS = [
     label: 'Pay with eSewa',
     description: 'Secure eSewa test payment',
   },
+  {
+    value: 'razorpay',
+    label: 'Pay with Razorpay',
+    description: 'Razorpay payment gateway',
+  },
 ]
 
 function EsewaLogo() {
   return (
-    <svg
-      viewBox="0 0 32 32"
-      className="h-full w-full"
-      role="img"
-      aria-label="eSewa"
-    >
+    <svg viewBox="0 0 32 32" className="h-full w-full" role="img" aria-label="eSewa">
       <circle cx="16" cy="16" r="16" fill="#60BB46" />
-
       <path
-        d="M9 16.6c0-4.2 3-7.2 7-7.2 3.6 0 6.3 2.4 6.7 6.1.1.6-.4 1.1-1 1.1H11.4c.3 2 1.9 3.3 4 3.3 1.3 0 2.4-.4 3.3-1.3.3-.3.8-.4 1.2-.1l.9.7c.4.3.4.9.1 1.3-1.3 1.4-3.1 2.2-5.5 2.2-4.1 0-7.4-3-7.4-6.1Zm3-1.4h7.9c-.4-1.9-1.9-3.1-3.9-3.1-2 0-3.6 1.2-4 3.1Z"
-        fill="#fff"
+        d="M9.5 16.5C9.5 12.4 12.5 9.4 16.5 9.4C20.1 9.4 22.8 11.8 23.2 15.5C23.3 16.1 22.8 16.6 22.2 16.6H12.1C12.4 18.6 14 19.9 16.1 19.9C17.4 19.9 18.5 19.5 19.4 18.6C19.7 18.3 20.2 18.2 20.6 18.5L21.5 19.2C21.9 19.5 21.9 20.1 21.6 20.5C20.3 21.9 18.5 22.7 16.1 22.7C12 22.7 9.5 19.7 9.5 16.5ZM12.2 14.8H19.9C19.5 12.9 18 11.7 16 11.7C14 11.7 12.5 12.9 12.2 14.8Z"
+        fill="#FFFFFF"
       />
     </svg>
   )
@@ -171,6 +171,11 @@ function CheckoutPage() {
     setIsSubmitting(true)
 
     try {
+      if (paymentMethod === 'razorpay') {
+        window.alert('Razorpay payment is not available yet because test API access is unavailable in my region.')
+        return
+      }
+
       const { data } = await api.post('/order', {
         items,
         address,
@@ -248,7 +253,7 @@ function CheckoutPage() {
         {!isStoreOpen && (
           <div
             role="alert"
-            className="mb-6 flex items-start gap-3 rounded-xl border border-[#e8c27a] bg-[#fff7e8] px-4 py-4 text-[#8a571b]"
+            className="mb-6 flex items-start gap-3 rounded-xl border border-[#e87a7a] bg-[#ffe8e8dc] px-4 py-4 text-[#8a571b]"
           >
             <span className="mt-0.5 text-lg" aria-hidden="true">!</span>
             <div>
@@ -308,15 +313,18 @@ function CheckoutPage() {
                     paymentMethod === method.value
 
                   const isCash = method.value === 'cash'
+                  const isRazorpay = method.value === 'razorpay'
 
                   return (
                     <label
                       key={method.value}
-                      className={`flex min-h-[72px] cursor-pointer items-center gap-3 rounded-xl border p-3.5 transition-all ${
+                      className={`${isRazorpay ? 'sm:col-span-2' : ''} flex min-h-[72px] cursor-pointer items-center gap-3 rounded-xl border p-3.5 transition-all ${
                         isSelected
                           ? isCash
                             ? 'border-[#D98B2B] bg-[#FFF7E8] text-[#8A571B] shadow-sm ring-1 ring-[#D98B2B]/20'
-                            : 'border-[#60BB46] bg-[#60BB46]/10 text-[#2E7D20] shadow-sm ring-1 ring-[#60BB46]/20'
+                            : isRazorpay
+                              ? 'border-[#1E90FF] bg-white text-[#0B1F3A] shadow-sm ring-1 ring-[#1E90FF]/20'
+                              : 'border-[#60BB46] bg-[#60BB46]/10 text-[#2E7D20] shadow-sm ring-1 ring-[#60BB46]/20'
                           : 'border-black/10 bg-white hover:border-black/20 hover:bg-black/[0.01]'
                       }`}
                     >
@@ -334,6 +342,8 @@ function CheckoutPage() {
                       {/* Payment Icon */}
                       {isCash ? (
                         <Banknote className="h-5 w-5 shrink-0" />
+                      ) : isRazorpay ? (
+                        <SiRazorpay className="h-7 w-7 shrink-0 text-[#1E90FF]" aria-label="Razorpay" />
                       ) : (
                         <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white p-0.5 shadow-sm ring-1 ring-[#60BB46]/20">
                           <EsewaLogo />
@@ -341,8 +351,13 @@ function CheckoutPage() {
                       )}
 
                       <span className="min-w-0">
-                        <span className="block text-sm font-bold">
-                          {method.label}
+                        <span className={`flex flex-wrap items-center gap-1.5 text-sm font-bold ${isRazorpay ? 'text-[#0B1F3A]' : ''}`}>
+                          <span>{method.label}</span>
+                          {isRazorpay && (
+                            <span className="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-black/50">
+                              Unavailable
+                            </span>
+                          )}
                         </span>
 
                         <span className="mt-0.5 block text-xs opacity-70">
@@ -353,6 +368,7 @@ function CheckoutPage() {
                   )
                 })}
               </div>
+
             </div>
 
             {/* Submit Button */}
@@ -362,7 +378,9 @@ function CheckoutPage() {
               className={`mt-7 flex h-12 w-full items-center justify-center rounded-xl text-sm font-bold text-white transition hover:opacity-95 disabled:cursor-wait disabled:opacity-60 ${
                 paymentMethod === 'esewa'
                   ? 'bg-[#60BB46]'
-                  : 'bg-gradient-to-r from-[#C1442D] to-[#E1673F]'
+                  : paymentMethod === 'razorpay'
+                    ? 'bg-[#3395FF]'
+                    : 'bg-gradient-to-r from-[#C1442D] to-[#E1673F]'
               }`}
             >
               {!isStoreOpen
@@ -371,7 +389,9 @@ function CheckoutPage() {
                 ? 'Processing...'
                 : paymentMethod === 'cash'
                   ? 'Place order'
-                  : 'Continue to eSewa'}
+                  : paymentMethod === 'esewa'
+                    ? 'Continue to eSewa'
+                    : 'Pay with Razorpay'}
             </button>
 
 
