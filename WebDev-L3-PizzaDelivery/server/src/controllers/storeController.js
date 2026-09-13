@@ -5,7 +5,7 @@ const getStoreSettings = async (req, res) => {
     const settings = await StoreSettings.findOneAndUpdate(
       { key: "main" },
       { $setOnInsert: { key: "main", isOpen: true } },
-      { new: true, upsert: true, setDefaultsOnInsert: true },
+      { returnDocument: "after", upsert: true, setDefaultsOnInsert: true },
     );
 
     return res.status(200).json({ isOpen: settings.isOpen });
@@ -25,7 +25,7 @@ const updateStoreSettings = async (req, res) => {
     const settings = await StoreSettings.findOneAndUpdate(
       { key: "main" },
       { $set: { isOpen } },
-      { new: true, upsert: true, setDefaultsOnInsert: true },
+      { returnDocument: "after", upsert: true, setDefaultsOnInsert: true },
     );
 
     return res.status(200).json({ isOpen: settings.isOpen });
