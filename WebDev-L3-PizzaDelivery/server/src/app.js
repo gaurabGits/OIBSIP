@@ -34,10 +34,10 @@ app.get("/reset-password", (req, res) => {
     const token = req.query.token;
 
     if (!token) {
-        return res.redirect(`${process.env.CLIENT_URL || "http://localhost:5173"}/login/forgot-password`);
+        return res.redirect(`${process.env.CLIENT_URL}/login/forgot-password`);
     }
 
-    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const clientUrl = process.env.CLIENT_URL;
     return res.redirect(`${clientUrl}/reset-password?token=${encodeURIComponent(token)}`);
 });
 
