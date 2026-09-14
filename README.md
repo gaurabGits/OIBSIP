@@ -212,7 +212,3 @@ PizzaSlice started as an internship project, but I used it as an opportunity to 
 The project covers the journey from selecting a pizza to placing an order, processing payment, updating inventory, and managing the order from the admin side.
 
 ---
-
-### Developed during the Oasis Infobyte Web Development Internship
-
-**PizzaSlice 🍕**
