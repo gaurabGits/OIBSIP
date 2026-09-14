@@ -12,6 +12,8 @@ const storeRoutes = require("./routes/storeRoutes");
 
 const app = express();
 
+const getClientUrl = () => (process.env.CLIENT_URL || "http://localhost:5173").replace(/\/$/, "");
+
 const parseAllowedOrigins = () => {
     const defaultOrigins = [
         "http://localhost:5173",
@@ -53,12 +55,12 @@ app.get("/", (req, res) => {
 
 app.get("/reset-password", (req, res) => {
     const token = req.query.token;
+    const clientUrl = getClientUrl();
 
     if (!token) {
-        return res.redirect(`${process.env.CLIENT_URL}/login/forgot-password`);
+        return res.redirect(`${clientUrl}/login/forgot-password`);
     }
 
-    const clientUrl = process.env.CLIENT_URL;
     return res.redirect(`${clientUrl}/reset-password?token=${encodeURIComponent(token)}`);
 });
 
