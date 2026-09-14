@@ -9,26 +9,17 @@ const orderRoutes = require("./routes/orderRoutes");
 const paymentRoutes = require("./routes/paymentRouters");
 const storeRoutes = require("./routes/storeRoutes");
 
-
 const app = express();
 
 const getClientUrl = () => (process.env.CLIENT_URL || "http://localhost:5173").replace(/\/$/, "");
 
 const parseAllowedOrigins = () => {
-    const defaultOrigins = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "https://pizzaslice4u.vercel.app",
-    ];
-
-    const configuredOrigins = (process.env.ALLOWED_ORIGINS || "")
-        .split(",")
-        .map((origin) => origin.trim())
+    const localOrigins = ["http://localhost:5173", "http://127.0.0.1:5173"];
+    const configuredOrigins = [process.env.CLIENT_URL, ...(process.env.ALLOWED_ORIGINS || "").split(",")]
+        .map((origin) => origin?.trim())
         .filter(Boolean);
 
-    return [...new Set([...defaultOrigins, ...configuredOrigins])].map((origin) =>
-        origin.replace(/\/$/, "")
-    );
+    return [...new Set([...localOrigins, ...configuredOrigins])].map((origin) => origin.replace(/\/$/, ""));
 };
 
 const allowedOrigins = parseAllowedOrigins();
@@ -37,7 +28,9 @@ app.use(express.json());
 app.use(
     cors({
         origin(origin, callback) {
-            if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ""))) {
+            const normalizedOrigin = origin?.replace(/\/$/, "");
+
+            if (!origin || allowedOrigins.includes(normalizedOrigin)) {
                 return callback(null, true);
             }
 
@@ -71,6 +64,5 @@ app.use("/api/inventory", inventoryRoutes);
 app.use("/api/order", orderRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/store", storeRoutes);
-
 
 module.exports = app;
