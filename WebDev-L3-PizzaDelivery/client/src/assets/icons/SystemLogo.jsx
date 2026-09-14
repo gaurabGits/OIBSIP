@@ -18,7 +18,7 @@ function SystemLogo() {
         </span>
 
         <span className="text-2xl font-extrabold tracking-wide text-[#fffaf2]">
-          Slice<span className="text-amber-400">House</span>
+          Pizza<span className="text-amber-400">Slice</span>
         </span>
       </a>
     </div>

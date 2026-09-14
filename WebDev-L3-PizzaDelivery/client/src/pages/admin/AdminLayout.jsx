@@ -156,11 +156,11 @@ export function AdminLayout() {
           }`}
         >
           <span className="flex h-8 w-8 font-extrabold tracking-wider  flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#C1442D] to-amber-400 text-white">
-            S
+            P
           </span>
           {!isCollapsed && (
             <span className="text-xl font-extrabold tracking-wider text-white">
-              Slice<span className="text-amber-400">House</span>
+              Pizza<span className="text-amber-400">Slice</span>
             </span>
           )}
         </div>
