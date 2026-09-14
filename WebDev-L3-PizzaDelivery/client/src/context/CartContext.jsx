@@ -14,72 +14,12 @@ import {
 } from "../utils/pricing";
 
 import { useAuth } from "./AuthContext";
+import api from "../services/api";
 
 const MAX_QUANTITY = 10;
 const LEGACY_STORAGE_KEY = "slicehouse-cart";
 
 export const CartContext = createContext(null);
-
-// Create a different localStorage key for every user
-const getStorageKey = (userId) => {
-  return `slicehouse-cart-${userId}`;
-};
-
-// Load cart belonging to a specific user
-const getStoredCart = (userId) => {
-  if (!userId) {
-    return [];
-  }
-
-  try {
-    const savedCart = localStorage.getItem(
-      getStorageKey(userId)
-    );
-
-    if (!savedCart) {
-      const legacyCart = localStorage.getItem(
-        LEGACY_STORAGE_KEY
-      );
-
-      if (!legacyCart) {
-        return [];
-      }
-
-      localStorage.setItem(
-        getStorageKey(userId),
-        legacyCart
-      );
-      localStorage.removeItem(
-        LEGACY_STORAGE_KEY
-      );
-
-      const parsedLegacyCart = JSON.parse(legacyCart);
-
-      return Array.isArray(parsedLegacyCart)
-        ? parsedLegacyCart
-        : [];
-    }
-
-    const parsedCart = JSON.parse(savedCart);
-
-    if (!Array.isArray(parsedCart)) {
-      return [];
-    }
-
-    return parsedCart;
-  } catch (error) {
-    console.error(
-      "Failed to load cart:",
-      error
-    );
-
-    localStorage.removeItem(
-      getStorageKey(userId)
-    );
-
-    return [];
-  }
-};
 
 // Keep quantity between 1 and 10
 const getSafeQuantity = (quantity) => {
@@ -106,42 +46,30 @@ export function CartProvider({ children }) {
   // Keeps track of which user's cart is currently loaded
   const cartLoadedForUser = useRef(null);
 
-  // Load the correct cart whenever the logged-in user changes
+  // Load the cart owned by the authenticated user.
   useEffect(() => {
-    if (loading) {
-      return;
-    }
-
-    // No user = no cart
+    if (loading) return;
     if (!userId) {
       setItems([]);
       cartLoadedForUser.current = null;
       return;
     }
 
-    const userCart = getStoredCart(userId);
-
-    setItems(userCart);
-
-    cartLoadedForUser.current = userId;
+    let cancelled = false;
+    cartLoadedForUser.current = null;
+    api.get("/cart").then(({ data }) => {
+      if (cancelled) return;
+      const serverItems = Array.isArray(data.items) ? data.items : [];
+      setItems(serverItems);
+      cartLoadedForUser.current = userId;
+    }).catch((error) => console.error("Failed to load cart:", error));
+    return () => { cancelled = true; };
   }, [userId, loading]);
 
-  // Save cart for the currently logged-in user
+  // Persist every cart mutation in MongoDB for this user.
   useEffect(() => {
-    if (loading || !userId) {
-      return;
-    }
-
-    // Prevent saving old user's cart
-    // before the new user's cart has loaded
-    if (cartLoadedForUser.current !== userId) {
-      return;
-    }
-
-    localStorage.setItem(
-      getStorageKey(userId),
-      JSON.stringify(items)
-    );
+    if (loading || !userId || cartLoadedForUser.current !== userId) return;
+    api.put("/cart", { items }).catch((error) => console.error("Failed to save cart:", error));
   }, [items, userId, loading]);
 
   // Add normal pizza
