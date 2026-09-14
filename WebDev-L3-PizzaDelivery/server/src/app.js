@@ -11,31 +11,14 @@ const storeRoutes = require("./routes/storeRoutes");
 
 const app = express();
 
-const getClientUrl = () => (process.env.CLIENT_URL || "http://localhost:5173").replace(/\/$/, "");
-
-const parseAllowedOrigins = () => {
-    const localOrigins = ["http://localhost:5173", "http://127.0.0.1:5173"];
-    const configuredOrigins = [process.env.CLIENT_URL, ...(process.env.ALLOWED_ORIGINS || "").split(",")]
-        .map((origin) => origin?.trim())
-        .filter(Boolean);
-
-    return [...new Set([...localOrigins, ...configuredOrigins])].map((origin) => origin.replace(/\/$/, ""));
-};
-
-const allowedOrigins = parseAllowedOrigins();
-
 app.use(express.json());
+
 app.use(
     cors({
-        origin(origin, callback) {
-            const normalizedOrigin = origin?.replace(/\/$/, "");
-
-            if (!origin || allowedOrigins.includes(normalizedOrigin)) {
-                return callback(null, true);
-            }
-
-            return callback(new Error(`CORS blocked request from origin: ${origin}`));
-        },
+        origin: [
+            "http://localhost:5173",
+            "https://pizzaslice4u.vercel.app",
+        ],
         credentials: true,
     })
 );
@@ -47,14 +30,17 @@ app.get("/", (req, res) => {
 });
 
 app.get("/reset-password", (req, res) => {
-    const token = req.query.token;
-    const clientUrl = getClientUrl();
+    const { token } = req.query;
 
     if (!token) {
-        return res.redirect(`${clientUrl}/login/forgot-password`);
+        return res.redirect(
+            "https://pizzaslice4u.vercel.app/login/forgot-password"
+        );
     }
 
-    return res.redirect(`${clientUrl}/reset-password?token=${encodeURIComponent(token)}`);
+    res.redirect(
+        `https://pizzaslice4u.vercel.app/reset-password?token=${encodeURIComponent(token)}`
+    );
 });
 
 app.use("/api/auth", authRoutes);

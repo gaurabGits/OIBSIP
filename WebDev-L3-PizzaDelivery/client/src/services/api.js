@@ -1,13 +1,8 @@
 import axios from "axios";
 
-const normalizeApiUrl = (url) => {
-    const cleanUrl = url.replace(/\/$/, "");
-    return cleanUrl.endsWith("/api") ? cleanUrl : `${cleanUrl}/api`;
-};
-
-const API_URL = normalizeApiUrl(
-    import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "/api" : "http://localhost:5000/api")
-);
+const API_URL = import.meta.env.VITE_API_URL
+    ? "/api"
+    : "http://localhost:5000/api";
 
 const api = axios.create({
     baseURL: API_URL,
@@ -17,7 +12,6 @@ const api = axios.create({
     timeout: 15000,
 });
 
-// Attach JWT automatically to every request
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem("token");
@@ -31,7 +25,6 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// Handle authentication and network errors
 api.interceptors.response.use(
     (response) => response,
     (error) => {
@@ -49,3 +42,4 @@ api.interceptors.response.use(
 );
 
 export default api;
+
