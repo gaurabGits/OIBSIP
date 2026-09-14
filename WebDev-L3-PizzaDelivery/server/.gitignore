@@ -11,6 +11,7 @@ dist-ssr/
 
 # Local environment
 .env
+.env.development
 *.local
 
 # Editor/system files
@@ -18,3 +19,4 @@ dist-ssr/
 !.vscode/extensions.json
 .idea/
 .DS_Store
+

@@ -12,16 +12,37 @@ const storeRoutes = require("./routes/storeRoutes");
 
 const app = express();
 
-app.use(cors());
+const parseAllowedOrigins = () => {
+    const defaultOrigins = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://pizzaslice4u.vercel.app",
+    ];
+
+    const configuredOrigins = (process.env.ALLOWED_ORIGINS || "")
+        .split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean);
+
+    return [...new Set([...defaultOrigins, ...configuredOrigins])].map((origin) =>
+        origin.replace(/\/$/, "")
+    );
+};
+
+const allowedOrigins = parseAllowedOrigins();
+
 app.use(express.json());
 app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "https://pizzaslice4u.vercel.app/",
-    ],
-    credentials: true,
-  })
+    cors({
+        origin(origin, callback) {
+            if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ""))) {
+                return callback(null, true);
+            }
+
+            return callback(new Error(`CORS blocked request from origin: ${origin}`));
+        },
+        credentials: true,
+    })
 );
 
 app.get("/", (req, res) => {
