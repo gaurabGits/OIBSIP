@@ -147,7 +147,7 @@ function AdminDashboardPage() {
           </p>
 
           <h2 className="mt-1 text-3xl font-black tracking-tight text-[#1c1712]">
-            Good morning, admin.
+            Hello, admin.
           </h2>
 
           <p className="mt-2 text-sm text-[#806f60]">
