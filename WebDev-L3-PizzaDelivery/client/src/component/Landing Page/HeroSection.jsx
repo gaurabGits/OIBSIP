@@ -1,5 +1,5 @@
 ﻿import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 
 import pizzaImg from '../../assets/images/pizza.png';
@@ -22,35 +22,50 @@ const CENTER = STAGE / 2;
 const CIRCLE_SIZE = 540;
 const CIRCLE_RADIUS = CIRCLE_SIZE / 2;
 const ITEM_SIZE = 72;
+
 const ANGLE_STEP = 360 / INGREDIENTS.length;
 const ROTATE_TIME = 1000;
 const PAUSE_TIME = 2800;
 
 function HeroSection() {
   const navigate = useNavigate();
+
   const [active, setActive] = useState(0);
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
 
-  const rotateTimer = useRef(null);
-  const finishTimer = useRef(null);
+  const timerRef = useRef(null);
 
   useEffect(() => {
-    rotateTimer.current = setTimeout(() => {
+    const startSpin = () => {
       setIsSpinning(true);
-      setRotation((prev) => prev - ANGLE_STEP);
 
-      finishTimer.current = setTimeout(() => {
-        setActive((prev) => (prev + 1) % INGREDIENTS.length);
+      setRotation((prevRotation) => {
+        const nextRotation = prevRotation - ANGLE_STEP;
+
+        // Keep the rotation value small after a full circle.
+        return nextRotation <= -360
+          ? nextRotation + 360
+          : nextRotation;
+      });
+
+      setActive((prevActive) => {
+        return (prevActive + 1) % INGREDIENTS.length;
+      });
+
+      timerRef.current = setTimeout(() => {
         setIsSpinning(false);
+
+        timerRef.current = setTimeout(startSpin, PAUSE_TIME);
       }, ROTATE_TIME);
-    }, PAUSE_TIME);
+    };
+
+    timerRef.current = setTimeout(startSpin, PAUSE_TIME);
 
     return () => {
-      clearTimeout(rotateTimer.current);
-      clearTimeout(finishTimer.current);
+      clearTimeout(timerRef.current);
     };
-  }, [active]);
+  }, []);
 
   const getIngredientPosition = (index) => {
     const angle = index * ANGLE_STEP - 90 + rotation;
@@ -90,10 +105,7 @@ function HeroSection() {
               <ArrowUpRight size={17} strokeWidth={2.5} />
             </button>
 
-            <Link
-              to="/menu"
-              className="hero-menu-btn"
-            >
+            <Link to="/menu" className="hero-menu-btn">
               View Full Menu
             </Link>
           </div>
@@ -101,7 +113,7 @@ function HeroSection() {
           <div className="hero-stats">
             <div className="hero-stat">
               <b>4.9</b>
-              <span>â˜… 2k+ reviews</span>
+              <span>★ 2k+ reviews</span>
             </div>
 
             <div className="hero-stat">
@@ -129,15 +141,24 @@ function HeroSection() {
               draggable={false}
             />
 
-            <div className="ingredient-wheel" style={{ transform: `rotate(${rotation}deg)` }}>
+            <div
+              className="ingredient-wheel"
+              style={{
+                transform: `rotate(${rotation}deg)`,
+              }}
+            >
               {INGREDIENTS.map((ingredient, index) => {
                 const angle = index * ANGLE_STEP - 90;
                 const radians = (angle * Math.PI) / 180;
 
-                const x = CENTER + CIRCLE_RADIUS * Math.cos(radians);
-                const y = CENTER + CIRCLE_RADIUS * Math.sin(radians);
+                const x =
+                  CENTER + CIRCLE_RADIUS * Math.cos(radians);
 
-                const isActive = index === active && !isSpinning;
+                const y =
+                  CENTER + CIRCLE_RADIUS * Math.sin(radians);
+
+                const isActive =
+                  index === active && !isSpinning;
 
                 return (
                   <div
@@ -149,8 +170,16 @@ function HeroSection() {
                       transform: `rotate(${-rotation}deg)`,
                     }}
                   >
-                    <div className={`ingredient-inner ${isActive ? 'active' : ''}`}>
-                      <img src={ingredient.img} alt={ingredient.name} draggable={false} />
+                    <div
+                      className={`ingredient-inner ${
+                        isActive ? 'active' : ''
+                      }`}
+                    >
+                      <img
+                        src={ingredient.img}
+                        alt={ingredient.name}
+                        draggable={false}
+                      />
                     </div>
                   </div>
                 );
@@ -158,7 +187,13 @@ function HeroSection() {
             </div>
 
             {!isSpinning && (
-              <div className="active-label" style={{ left: activePosition.x, top: activePosition.y + ITEM_SIZE / 2 + 18 }}>
+              <div
+                className="active-label"
+                style={{
+                  left: activePosition.x,
+                  top: activePosition.y + ITEM_SIZE / 2 + 18,
+                }}
+              >
                 <div className="label-line">
                   <span />
                 </div>
