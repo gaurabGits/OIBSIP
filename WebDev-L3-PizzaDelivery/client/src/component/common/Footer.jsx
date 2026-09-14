@@ -1,7 +1,7 @@
 import { MapPin, Phone, Clock } from 'lucide-react'
-import { FaFacebookSquare, FaInstagramSquare, FaTwitterSquare} from "react-icons/fa";
-import SystemLogo from '../../assets/icons/SystemLogo';
-import { Link } from 'react-router-dom';
+import { FaGithub, FaLinkedin } from 'react-icons/fa'
+import SystemLogo from '../../assets/icons/SystemLogo'
+import { Link } from 'react-router-dom'
 
 const shopLinks = [
   { label: 'Menu', href: '/menu' },
@@ -18,7 +18,6 @@ function Footer() {
     <footer className="w-full border-t border-[#3a2a1e] bg-[#1c1410]">
       <div className="mx-auto max-w-7xl px-5 py-10 sm:py-12 md:px-10">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-10">
-          {/* Brand */}
           <div>
             <SystemLogo className="mb-3" showText={true} />
             <p className="mt-3 text-sm text-[#a89482]">
@@ -26,7 +25,6 @@ function Footer() {
             </p>
           </div>
 
-          {/* Shop links */}
           <div>
             <h3 className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#d4a24c]">
               Shop
@@ -45,7 +43,6 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Support links */}
           <div>
             <h3 className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#d4a24c]">
               Support
@@ -64,7 +61,7 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
+
           <div>
             <h3 className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#d4a24c]">
               Contact
@@ -86,20 +83,28 @@ function Footer() {
           </div>
         </div>
 
-        {/* Bottom bar */}
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-[#3a2a1e] pt-6 sm:flex-row">
           <p className="text-xs text-[#6b5c4d]">
-            © {new Date().getFullYear()} SliceHouse. All rights reserved.
+            Made by <span className="text-[#d4a24c]">Gaurab Bishwakarma</span> · {new Date().getFullYear()}
           </p>
           <div className="flex items-center gap-4">
-            <a href="#" aria-label="Instagram" className="text-[#a89482] hover:text-[#d4a24c]">
-              <FaInstagramSquare className="h-6 w-6" />
+            <a
+              href="https://github.com/gaurabGits"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub"
+              className="text-[#a89482] transition-colors hover:text-[#d4a24c]"
+            >
+              <FaGithub className="h-5 w-5" />
             </a>
-            <a href="#" aria-label="Facebook" className="text-[#a89482] hover:text-[#d4a24c]">
-              <FaFacebookSquare className="h-6 w-6" />
-            </a>
-            <a href="#" aria-label="Twitter" className="text-[#a89482] hover:text-[#d4a24c]">
-              <FaTwitterSquare className="h-6 w-6" />
+            <a
+              href="https://www.linkedin.com/in/gaurab-bishwakarma-a7a66a272/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn"
+              className="text-[#a89482] transition-colors hover:text-[#d4a24c]"
+            >
+              <FaLinkedin className="h-5 w-5" />
             </a>
           </div>
         </div>
@@ -109,5 +114,3 @@ function Footer() {
 }
 
 export default Footer
-
-
