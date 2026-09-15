@@ -48,24 +48,17 @@ function AboutPage() {
           }}
         />
 
-        {/* Dark overlay */}
+         {/* Dark overlay */} 
         <div className="absolute inset-0 -z-10 bg-black/50" />
-
-        {/* Warm gradient */}
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/85 via-black/60 to-black/35" />
 
-        {/* Hero Content */}
         <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-16 md:py-20 lg:px-8">
-
           <div className="max-w-2xl">
-
-            {/* Label */}
             <p className="mt-10 mb-4 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400 sm:mb-5 sm:text-xs">
               <span className="h-2 w-2 rounded-full bg-amber-400" />
               About SliceHouse
             </p>
 
-            {/* Heading */}
             <h1 className="font-serif text-3xl font-semibold leading-[1.08] tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
               Better pizza,
               <br className="hidden sm:block" />
@@ -76,14 +69,12 @@ function AboutPage() {
               way.
             </h1>
 
-            {/* Description */}
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/75 sm:mt-6 sm:text-base md:text-lg">
               SliceHouse is a modern pizza ordering platform designed to make
               customization, checkout, and order tracking simple from the
               first click to your doorstep.
             </p>
 
-            {/* Tags */}
             <div className="mt-6 flex flex-wrap gap-2 sm:mt-8 sm:gap-3">
 
               <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs text-white/80 backdrop-blur-sm sm:px-4 sm:py-2 sm:text-sm">
@@ -105,7 +96,6 @@ function AboutPage() {
         </div>
       </section>
 
-      {/* What we do */}
       <section className="mx-auto max-w-6xl px-5 py-14 sm:px-10 sm:py-16 lg:px-12 lg:py-24">
         <div className="grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-24">
 
@@ -133,7 +123,6 @@ function AboutPage() {
           </div>
         </div>
 
-        {/* Features */}
         <div className="mt-12 grid overflow-hidden rounded-2xl border border-border md:mt-16 md:grid-cols-3">
           {features.map(({ icon: Icon, title, text }) => (
             <article
@@ -156,7 +145,6 @@ function AboutPage() {
         </div>
       </section>
 
-      {/* Pizza Builder */}
       <section id="faq" className="border-y border-border bg-[#F5EFE6]">
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:px-10 sm:py-16 lg:grid-cols-[0.8fr_1.2fr] lg:gap-24 lg:px-12 lg:py-24">
 
@@ -211,7 +199,6 @@ function AboutPage() {
         </div>
       </section>
 
-      {/* Contact */}
       <section id="contact" className="mx-auto max-w-6xl px-5 py-14 sm:px-10 sm:py-16 lg:px-12 lg:py-24">
 
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
@@ -259,7 +246,6 @@ function AboutPage() {
           </div>
         </div>
 
-        {/* Map */}
         <div className="mt-12 overflow-hidden rounded-2xl border border-border shadow-sm">
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d61023.30145460372!2d85.33710617697987!3d27.687688668222634!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2snp!4v1787077630904!5m2!1sen!2snp"

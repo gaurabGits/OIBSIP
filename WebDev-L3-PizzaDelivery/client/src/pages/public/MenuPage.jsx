@@ -63,7 +63,7 @@ function MenuPage() {
 
         <div className="mx-auto w-full max-w-7xl px-5 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
           <div className="max-w-2xl">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-black/20 px-3.5 py-2 backdrop-blur-sm sm:mb-6">
+            <div className="mt-6 mb-5 inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-black/20 px-3.5 py-2 backdrop-blur-sm sm:mb-6">
               <UtensilsCrossed className="h-3.5 w-3.5 text-amber-400" strokeWidth={2.5} />
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400 sm:text-xs">
                 Full Menu
